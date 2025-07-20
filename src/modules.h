@@ -3,18 +3,55 @@
 
 #include "daisysp.h"
 #include "raygui.h"
+#include "raylib.h"
 
 #include <unordered_map>
 
-typedef float patch_source;
+class patch_point_gui {
+public:
+    patch_point_gui() {}
+    ~patch_point_gui() {}
+
+    void init(std::string label, Vector2 position) {
+
+        float width = 40;
+        float height = 100;
+
+        float x = position.x + (0.5*width);
+        float y = position.y + (0.7*height);
+        _circle_position = {x, y};
+        _radius = 20;
+
+        y = position.y + (0.3*height);
+        _label_position = {position.x, y};
+        _label = label; 
+    }
+
+    void draw() {
+        DrawCircleV(_circle_position, _radius, RED);
+        DrawCircleV(_circle_position, _radius-3, GetColor(GuiGetStyle(DEFAULT, BACKGROUND_COLOR)));
+        DrawText(_label.c_str(), _label_position.x, _label_position.y, 16, BLACK);
+    }
+
+    std::string _label;
+    Vector2 _label_position;
+    Vector2 _circle_position;
+    float _radius;
+};
+
+struct patch_source {
+    float value;
+    patch_point_gui gui;
+};
 
 struct patch_destination {
-    float* source = nullptr;
+    patch_source* source = nullptr;
     bool connected = false;
+    patch_point_gui gui;
 
     float val() {
         if (connected) {
-            return *source;
+            return source->value;
         }
         else {
             return 0.0f;
@@ -22,29 +59,21 @@ struct patch_destination {
     }
 };
 
-// class patch_bay {
-// public:
-//     patch_bay() {}
-//     ~patch_bay() {}
-
-//     void add_input(std::string key, patch_input* in) {
-//         _inputs.insert({key, in});
-//     }
-
-//     patch_input* get_input(std::string key) {
-//         return _inputs[key];
-//     }
-
-// private:
-//     std::unordered_map<std::string, patch_input*> _inputs;
-// };
-
-//typedef std::unordered_map<std::string, patch_input*> patch_destinations;
-
 class patch_manager {
 public:
     patch_manager() {}
     ~patch_manager() {}
+
+    struct connection {
+        std::string _src_name;
+        Vector2 _src_coordinates;
+        std::string _dest_name;
+        Vector2 _dest_coordinates;
+
+        void draw() {
+            DrawLineEx(_src_coordinates, _dest_coordinates, 4, RED);
+        }
+    };
 
     void add(std::string name, patch_source* source) {
         _sources.insert({name, source});
@@ -52,6 +81,13 @@ public:
 
     void add(std::string name, patch_destination* dest) {
         _destinations.insert({name, dest});
+    }
+    
+    void draw() {
+        for(auto i : _connections) {
+            auto cur = i.first;
+            _connections[cur]->draw();
+        }
     }
 
     void connect(std::string source_name, std::string dest_name) {
@@ -64,16 +100,26 @@ public:
         dest->source = _sources[source_name];
 
         dest->connected = true;
+
+        connection* c = new connection();
+        c->_src_name = source_name;
+        c->_src_coordinates = _sources[source_name]->gui._circle_position;
+        c->_dest_name = dest_name;
+        c->_dest_coordinates = _destinations[dest_name]->gui._circle_position;
+        _connections.insert({dest_name, c});
     }
 
     void disconnect(std::string dest_name) {
         _destinations[dest_name]->source = nullptr;
         _destinations[dest_name]->connected = false;
+        _connections.erase(dest_name);
     }
 
 private:
     std::unordered_map<std::string, patch_source*> _sources;
     std::unordered_map<std::string, patch_destination*> _destinations;
+
+    std::unordered_map<std::string, connection*> _connections;
 };
 
 class oscillator {
@@ -95,12 +141,10 @@ public:
         _module_box.width = 150;
         _module_box.height = 300;
 
+         _out.gui.init("output", {_module_box.x+5, _module_box.y+80});
+
         
     }
-
-    // void connect() {
-    //     (*_patch_destinations)["filter_in"]->connect(_out);
-    // }
 
     void draw() {
         
@@ -128,13 +172,16 @@ public:
             }
             else {
                 std::cout << _out_counter << std::endl;
+                _patch_bay->disconnect("my_filt_in");
                 _patch_bay->connect("my_osc_out", "my_mixer_in");
             }
         }
+
+        _out.gui.draw();
     }
 
     float process() {
-        _out = _osc.Process();
+        _out.value = _osc.Process();
     }
 
     // process calls the daisy process function, THEN sets patch output variables accordingly;
@@ -174,17 +221,16 @@ public:
 
         _module_box = {190, 20, 150, 300};
 
-    }
+        _in.gui.init("input", {_module_box.x+5, _module_box.y+60});
+        _out.gui.init("output", {_module_box.x+60, _module_box.y+60});
 
-    // void connect() {
-    //     (*_patch_destinations)["mixer_in_1"]->connect(_out);
-    // }
+    }
 
     float process() {
 
         _filter.Process(_in.val());
 
-        _out = _filter.Low();
+        _out.value = _filter.Low();
     }
 
     void draw() {
@@ -205,6 +251,9 @@ public:
             _filter.SetRes(_resonance);
         }
         y_index += y_pad;
+
+        _in.gui.draw();
+        _out.gui.draw();
     }
 
     patch_destination _in;
@@ -214,10 +263,6 @@ private:
     daisysp::Svf _filter;
     float _frequency;
     float _resonance;
-
-    
-
-    //patch_destinations* _patch_destinations;
 
     patch_manager* _patch_bay;
 
@@ -234,6 +279,10 @@ public:
         _gain_2 = 0.5;
 
         _module_box = {400, 20, 150, 300};
+
+        _in_1.gui.init("Audio 1", {_module_box.x+5, _module_box.y+200});
+
+        _in_2.gui.init("Audio 2", {_module_box.x+60, _module_box.y+200});
     }
 
     float process() {
@@ -254,9 +303,13 @@ public:
 
         if (GuiSlider((Rectangle) {x_index, y_index, _module_box.width - (2*x_pad), 20}, "Gain 2", "", &_gain_2, 0.0, 1.0)) {}
         y_index += y_pad;
+
+        _in_1.gui.draw();
+        _in_2.gui.draw();
     }
 
     patch_destination _in_1;
+    patch_destination _in_2;
 
 private:
     float _gain_1;
