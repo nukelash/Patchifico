@@ -55,9 +55,15 @@ public:
     }
 
     void connect(std::string source_name, std::string dest_name) {
-        _destinations[dest_name]->source = _sources[source_name];
+        patch_destination* dest = _destinations[dest_name];
 
-        _destinations[dest_name]->connected = true;
+        if (dest->connected) {
+            disconnect(dest_name);
+        }
+
+        dest->source = _sources[source_name];
+
+        dest->connected = true;
     }
 
     void disconnect(std::string dest_name) {
@@ -81,6 +87,8 @@ public:
         _osc.Init(sample_rate);
         _frequency = 100;
         _osc.SetFreq(_frequency);
+
+        _out_counter = 0;
 
         _module_box.x = 20;
         _module_box.y = 20;
@@ -113,14 +121,16 @@ public:
         }
         y_index += y_pad;
 
-        // if (GuiComboBox((Rectangle) {x_index, y_index, _module_box.width - (2*x_pad), 20}, "Filter;Mixer", &_out_counter)) {
-        //     if (_out_counter = 0) {
-        //         (*_patch_destinations)["filter_in"]->connect(_out);
-        //     }
-        //     else {
-        //         (*_patch_destinations)["mixer_in_1"]->connect(_out);
-        //     }
-        // }
+        if (GuiComboBox((Rectangle) {x_index, y_index, _module_box.width - (2*x_pad), 20}, "Filter;Mixer", &_out_counter)) {
+            if (_out_counter == 0) {
+                _patch_bay->connect("my_osc_out", "my_filt_in");
+                _patch_bay->connect("my_filt_out", "my_mixer_in");
+            }
+            else {
+                std::cout << _out_counter << std::endl;
+                _patch_bay->connect("my_osc_out", "my_mixer_in");
+            }
+        }
     }
 
     float process() {
