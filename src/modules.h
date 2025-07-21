@@ -84,6 +84,92 @@ public:
     }
     
     void draw() {
+
+        Vector2 mouse_location = GetMousePosition();
+        std::string name;
+
+        if ((!_connection_in_progress) && IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) {
+            if (point_colliding_patch_source(mouse_location, &name)) {
+
+                // if this name exists i.e the patch point is in use
+                for (auto i : _connections) {
+                    auto idx = i.first;
+                    if (_connections[idx]->_src_name == name) {
+                        _connection_in_progress = true;
+                        
+                        connection* c = new connection();
+                        c->_dest_name = _connections[idx]->_dest_name;
+                        c->_dest_coordinates = _connections[idx]->_dest_coordinates;
+                        c->_src_name = "mouse";
+                        c->_src_coordinates = mouse_location;
+                        _connections.insert({"mouse", c});
+                        _connections.erase(idx);
+                        //return;
+                    }
+                }
+
+
+                _connection_in_progress = true;
+                connection* c = new connection();
+                c->_src_name = name;
+                c->_src_coordinates = _sources[name]->gui._circle_position;
+                c->_dest_name = "mouse";
+                c->_dest_coordinates = mouse_location;
+                _connections.insert({"mouse", c});
+            }
+            else if (point_colliding_patch_destination(mouse_location, &name)) {
+                for (auto i : _connections) {
+                    auto idx = i.first;
+                    if (_connections[idx]->_dest_name == name) {
+                        _connection_in_progress = true;
+                        
+                        connection* c = new connection();
+                        c->_src_name = _connections[idx]->_src_name;
+                        c->_src_coordinates = _connections[idx]->_src_coordinates;
+                        c->_dest_name = "mouse";
+                        c->_dest_coordinates = mouse_location;
+                        _connections.insert({"mouse", c});
+                        _connections.erase(idx);
+                        //return; // for some reason commenting out this return prevents stuttering... there may be something backwards when the next connection gets made though?
+                    }
+                }
+                
+                _connection_in_progress = true;
+                connection* c = new connection();
+                c->_src_name = "mouse";
+                c->_src_coordinates = mouse_location;
+                c->_dest_name = name;
+                c->_dest_coordinates = _destinations[name]->gui._circle_position;
+                _connections.insert({"mouse", c});
+            }
+        }
+        else if (_connection_in_progress) {
+            if (_connections["mouse"]->_dest_name == "mouse") {
+                _connections["mouse"]->_dest_coordinates = mouse_location;
+            }
+            else if (_connections["mouse"]->_src_name == "mouse") {
+                _connections["mouse"]->_src_coordinates = mouse_location;
+            }
+            
+            if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) {
+                if (point_colliding_patch_source(mouse_location, &name) && (_connections["mouse"]->_src_name == "mouse")) {
+                    connect(name, _connections["mouse"]->_dest_name);
+                    _connections.erase("mouse");
+                    _connection_in_progress = false;
+
+                }
+                else if (point_colliding_patch_destination(mouse_location, &name) && (_connections["mouse"]->_dest_name == "mouse")) {
+                    connect(_connections["mouse"]->_src_name, name);
+                    _connections.erase("mouse");
+                    _connection_in_progress = false;
+                }
+                else {
+                    _connection_in_progress = false;
+                    _connections.erase("mouse");
+                }
+            }
+        }
+
         for(auto i : _connections) {
             auto cur = i.first;
             _connections[cur]->draw();
@@ -112,14 +198,40 @@ public:
     void disconnect(std::string dest_name) {
         _destinations[dest_name]->source = nullptr;
         _destinations[dest_name]->connected = false;
+        //need to delete pointer i.e. memory leak
         _connections.erase(dest_name);
     }
 
 private:
+
+    bool point_colliding_patch_source(Vector2 point, std::string* name) {
+        for(auto i : _sources) {
+            auto idx = i.first;
+            if (CheckCollisionPointCircle(point, _sources[idx]->gui._circle_position, _sources[idx]->gui._radius)) {
+                *name = idx;
+                return true;
+            }
+        }
+        return false;
+    }
+
+    bool point_colliding_patch_destination(Vector2 point, std::string* name) {
+        for(auto i : _destinations) {
+            auto idx = i.first;
+            if (CheckCollisionPointCircle(point, _destinations[idx]->gui._circle_position, _destinations[idx]->gui._radius)) {
+                *name = idx;
+                return true;
+            }
+        }
+        return false;
+    }
+
     std::unordered_map<std::string, patch_source*> _sources;
     std::unordered_map<std::string, patch_destination*> _destinations;
 
     std::unordered_map<std::string, connection*> _connections;
+
+    bool _connection_in_progress = false;
 };
 
 class oscillator {

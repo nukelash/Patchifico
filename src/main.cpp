@@ -54,13 +54,6 @@ void gui_loop() {
     {
         // Draw
         //----------------------------------------------------------------------------------
-        
-
-        if (IsMouseButtonDown(MOUSE_BUTTON_LEFT)) {
-            auto position = GetMousePosition();
-            x = position.x;
-            y = position.y;
-        }
 
         BeginDrawing();
             ClearBackground(GetColor(GuiGetStyle(DEFAULT, BACKGROUND_COLOR)));
@@ -88,8 +81,8 @@ int main() {
     my_patch_bay.add("my_filt_out", &my_filt._out);
     my_patch_bay.add("my_mixer_in", &my_mixer._in_1);
 
-    my_patch_bay.connect("my_osc_out", "my_filt_in");
-    my_patch_bay.connect("my_filt_out", "my_mixer_in");
+    //my_patch_bay.connect("my_osc_out", "my_filt_in");
+    //my_patch_bay.connect("my_filt_out", "my_mixer_in");
 
     ma_interface* ma = new ma_interface(&user_data, callback);
     ma->start();
