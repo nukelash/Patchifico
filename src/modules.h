@@ -241,19 +241,39 @@ public:
 
     void init(float sample_rate, patch_manager* patch_bay) {
         _patch_bay = patch_bay;
-        
-        _osc.Init(sample_rate);
-        _frequency = 100;
-        _osc.SetFreq(_frequency);
 
-        _out_counter = 0;
+        _audio_frequency = 100;
+        for (auto i : _audio_oscillators) {
+            i->Init(sample_rate);
+            i->SetFreq(_audio_frequency);
+        }
+        _audio_tri.SetWaveform(daisysp::Oscillator::WAVE_TRI);
+        _audio_saw.SetWaveform(daisysp::Oscillator::WAVE_SAW);
+        _audio_sqr.SetWaveform(daisysp::Oscillator::WAVE_SQUARE);
+
+        _lfo_frequency = 0.5;
+        for (auto i : _lfo_oscillators) {
+            i->Init(sample_rate);
+            i->SetFreq(_lfo_frequency);
+        }
+        _lfo_tri.SetWaveform(daisysp::Oscillator::WAVE_TRI);
+        _lfo_saw.SetWaveform(daisysp::Oscillator::WAVE_SAW);
+        _lfo_sqr.SetWaveform(daisysp::Oscillator::WAVE_SQUARE);
 
         _module_box.x = 20;
         _module_box.y = 20;
         _module_box.width = 150;
         _module_box.height = 300;
 
-         _out.gui.init("output", {_module_box.x+5, _module_box.y+80});
+        _audio_frequency_mod.gui.init("Freq Mod", {_module_box.x+5, _module_box.y+30});
+
+        _audio_tri_out.gui.init("Tri", {_module_box.x+5, _module_box.y+80});
+        _audio_saw_out.gui.init("Saw", {_module_box.x+50, _module_box.y+80});
+        _audio_sqr_out.gui.init("Sqr", {_module_box.x+95, _module_box.y+80});
+
+        _lfo_tri_out.gui.init("Tri", {_module_box.x+5, _module_box.y+180});
+        _lfo_saw_out.gui.init("Saw", {_module_box.x+50, _module_box.y+180});
+        _lfo_sqr_out.gui.init("Sqr", {_module_box.x+95, _module_box.y+180});
 
         
     }
@@ -267,33 +287,38 @@ public:
         float x_index = _module_box.x + x_pad;
         GuiGroupBox(_module_box, "VCO");
 
-        if (GuiSlider((Rectangle) {x_index, y_index, _module_box.width - (2*x_pad), 20}, "Frequency", "", &_frequency, 20, 500)) {
-            _osc.SetFreq(_frequency);
-        }
+        GuiSlider((Rectangle) {x_index, y_index, _module_box.width - (2*x_pad), 20}, "Frequency", "", &_audio_frequency, 20, 500);
+        y_index += 160;
+
+        GuiSlider((Rectangle) {x_index, y_index, _module_box.width - (2*x_pad), 20}, "LFO Freq", "", &_lfo_frequency, 0.1, 50);
         y_index += y_pad;
 
-        if (GuiComboBox((Rectangle) {x_index, y_index, _module_box.width - (2*x_pad), 20}, "Sine;Tri;Saw;Ramp;Square", &_wavetype)) {
-            _osc.SetWaveform(_wavetype);
-        }
-        y_index += y_pad;
+        _audio_frequency_mod.gui.draw();
 
-        if (GuiComboBox((Rectangle) {x_index, y_index, _module_box.width - (2*x_pad), 20}, "Filter;Mixer", &_out_counter)) {
-            if (_out_counter == 0) {
-                _patch_bay->connect("my_osc_out", "my_filt_in");
-                _patch_bay->connect("my_filt_out", "my_mixer_in");
-            }
-            else {
-                std::cout << _out_counter << std::endl;
-                _patch_bay->disconnect("my_filt_in");
-                _patch_bay->connect("my_osc_out", "my_mixer_in");
-            }
+        for (auto i : _audio_outs) {
+            i->gui.draw();
         }
 
-        _out.gui.draw();
+        for (auto i : _lfo_outs) {
+            i->gui.draw();
+        }
     }
 
     float process() {
-        _out.value = _osc.Process();
+
+        for (auto i : _audio_oscillators) {
+            i->SetFreq(_audio_frequency + (100*_audio_frequency_mod.val()));
+        }
+
+        for (auto i : _lfo_oscillators) {
+            i->SetFreq(_lfo_frequency);
+        }
+
+        for (int i = 0; i < _audio_oscillators.size(); i++) {
+            _audio_outs[i]->value = _audio_oscillators[i]->Process();
+            _lfo_outs[i]->value = _lfo_oscillators[i]->Process();
+        }
+
     }
 
     // process calls the daisy process function, THEN sets patch output variables accordingly;
@@ -301,14 +326,34 @@ public:
     //callback will call each module process one at a time
 
     //draw will draw the GUI AND update module params accordingly
-    patch_source _out;
+    patch_source _audio_tri_out;
+    patch_source _audio_saw_out;
+    patch_source _audio_sqr_out;
+    std::vector<patch_source*> _audio_outs = {&_audio_tri_out, &_audio_saw_out, &_audio_sqr_out};
+
+    patch_source _lfo_tri_out;
+    patch_source _lfo_saw_out;
+    patch_source _lfo_sqr_out;
+    std::vector<patch_source*> _lfo_outs = {&_lfo_tri_out, &_lfo_saw_out, &_lfo_sqr_out};
+
+    patch_destination _audio_frequency_mod;
+
 private:
 
-    daisysp::Oscillator _osc;
-    float _frequency;
-    int _wavetype;
+    daisysp::Oscillator _audio_tri;
+    daisysp::Oscillator _audio_saw;
+    daisysp::Oscillator _audio_sqr;
+    std::vector<daisysp::Oscillator*> _audio_oscillators = {&_audio_tri, &_audio_saw, &_audio_sqr};
+    float _audio_frequency;
+    //int _wavetype;
 
-    int _out_counter;
+    daisysp::Oscillator _lfo_tri;
+    daisysp::Oscillator _lfo_saw;
+    daisysp::Oscillator _lfo_sqr;
+    std::vector<daisysp::Oscillator*> _lfo_oscillators = {&_lfo_tri, &_lfo_saw, &_lfo_sqr};
+    float _lfo_frequency;
+
+    //int _out_counter;
     
 
     //patch_destinations* _patch_destinations;
@@ -398,7 +443,7 @@ public:
     }
 
     float process() {
-        float sample = (_in_1.val() * _gain_1) + (0.0f * _gain_2);
+        float sample = (_in_1.val() * _gain_1) + (_in_2.val() * _gain_2);
         return sample;
     }
 

@@ -76,10 +76,19 @@ int main() {
     my_filt.init(48000, &my_patch_bay);
     my_mixer.init();
 
-    my_patch_bay.add("my_osc_out", &my_osc._out);
+    my_patch_bay.add("my_osc_tri", &my_osc._audio_tri_out);
+    my_patch_bay.add("my_osc_saw", &my_osc._audio_saw_out);
+    my_patch_bay.add("my_osc_sqr", &my_osc._audio_sqr_out);
+    my_patch_bay.add("my_osc_freq", &my_osc._audio_frequency_mod);
+
+    my_patch_bay.add("my_osc_lfo_tri", &my_osc._lfo_tri_out);
+    my_patch_bay.add("my_osc_lfo_saw", &my_osc._lfo_saw_out);
+    my_patch_bay.add("my_osc_lfo_sqr", &my_osc._lfo_sqr_out);
+
     my_patch_bay.add("my_filt_in", &my_filt._in);
     my_patch_bay.add("my_filt_out", &my_filt._out);
-    my_patch_bay.add("my_mixer_in", &my_mixer._in_1);
+    my_patch_bay.add("my_mixer_in_1", &my_mixer._in_1);
+    my_patch_bay.add("my_mixer_in_2", &my_mixer._in_2);
 
     //my_patch_bay.connect("my_osc_out", "my_filt_in");
     //my_patch_bay.connect("my_filt_out", "my_mixer_in");
