@@ -103,6 +103,7 @@ public:
                         c->_src_name = "mouse";
                         c->_src_coordinates = mouse_location;
                         _connections.insert({"mouse", c});
+                        disconnect(_connections[idx]->_dest_name);
                         _connections.erase(idx);
                         //return;
                     }
@@ -129,6 +130,7 @@ public:
                         c->_dest_name = "mouse";
                         c->_dest_coordinates = mouse_location;
                         _connections.insert({"mouse", c});
+                        disconnect(_connections[idx]->_dest_name);
                         _connections.erase(idx);
                         //return; // for some reason commenting out this return prevents stuttering... there may be something backwards when the next connection gets made though?
                     }
