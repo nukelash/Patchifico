@@ -428,6 +428,105 @@ private:
     Rectangle _module_box;
 };
 
+class envelope_generator {
+public:
+    envelope_generator() {}
+    ~envelope_generator() {}
+
+    void init(float sample_rate) {
+        _env.Init(sample_rate);
+
+        _module_box = {380, 20, 150, 300};
+
+        _attack = 0.1;
+        _decay = 0.5;
+        _last_trig_value = 0.0;
+
+        _trigger.gui.init("trigger", {_module_box.x+5, _module_box.y+200});
+        _output.gui.init("env out", {_module_box.x+50, _module_box.y+200});
+    }
+
+    void process() {
+        if(_trigger.val() > _last_trig_value) {
+            _env.Trigger();
+        }
+        _last_trig_value = _trigger.val();
+        _output.value = _env.Process();
+    }
+
+    void draw() {
+
+        int y_pad = 30;
+        float y_index = _module_box.y + y_pad;
+
+        int x_pad = 5;
+        float x_index = _module_box.x + x_pad;
+        GuiGroupBox(_module_box, "Envelope");
+
+        if (GuiSlider((Rectangle) {x_index, y_index, _module_box.width - (2*x_pad), 20}, "Attack", "", &_attack, 0.01, 2.0)) {
+            _env.SetTime(daisysp::ADENV_SEG_ATTACK, _attack);
+        }
+        y_index += y_pad;
+
+        if (GuiSlider((Rectangle) {x_index, y_index, _module_box.width - (2*x_pad), 20}, "Decay", "", &_decay, 0.01, 2.0)) {
+            _env.SetTime(daisysp::ADENV_SEG_DECAY, _decay);
+        }
+        y_index += y_pad;
+
+        if (GuiButton((Rectangle){x_index, y_index, _module_box.width - (2*x_pad), 20}, "Trigger")) {
+            _env.Trigger();
+        }
+
+        _trigger.gui.draw();
+        _output.gui.draw();
+        //std::cout << _env.GetCurrentSegment() <<std::endl;
+    }
+
+    patch_destination _trigger;
+    patch_source _output;
+
+private:
+    daisysp::AdEnv _env;
+    float _attack;
+    float _decay;
+
+    float _last_trig_value;
+
+    Rectangle _module_box;
+
+};
+
+class vca {
+public:
+    vca() {}
+    ~vca() {}
+
+    void init() {
+        _module_box = {600, 20, 100, 300};
+        _in_1.gui.init("in1", {_module_box.x+5, _module_box.y+30});
+        _in_2.gui.init("in2", {_module_box.x+5, _module_box.y+80});
+        _out_1.gui.init("out1", {_module_box.x+5, _module_box.y+130});
+    }
+
+    void process() {
+        _out_1.value = _in_1.val() * _in_2.val();
+    }
+
+    void draw() {
+        GuiGroupBox(_module_box, "VCA");
+        _in_1.gui.draw();
+        _in_2.gui.draw();
+        _out_1.gui.draw();
+    }
+
+    patch_destination _in_1;
+    patch_destination _in_2;
+    patch_source _out_1;
+
+private:
+    Rectangle _module_box;
+};
+
 class mixer {
 public:
     mixer() {}
@@ -437,7 +536,7 @@ public:
         _gain_1= 0.5;
         _gain_2 = 0.5;
 
-        _module_box = {400, 20, 150, 300};
+        _module_box = {700, 20, 150, 300};
 
         _in_1.gui.init("Audio 1", {_module_box.x+5, _module_box.y+200});
 

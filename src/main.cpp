@@ -17,6 +17,8 @@
 oscillator my_osc;
 filter my_filt;
 mixer my_mixer;
+envelope_generator my_envelope;
+vca my_vca;
 patch_manager my_patch_bay;
 
 void callback(ma_device* pDevice, void* pOutput, const void* pInput, ma_uint32 frameCount)
@@ -33,6 +35,8 @@ void callback(ma_device* pDevice, void* pOutput, const void* pInput, ma_uint32 f
 
         my_osc.process();
         my_filt.process();
+        my_envelope.process();
+        my_vca.process();
         out[i] = my_mixer.process();
 
     }
@@ -61,6 +65,8 @@ void gui_loop() {
             my_osc.draw();
             my_filt.draw();
             my_mixer.draw();
+            my_envelope.draw();
+            my_vca.draw();
             my_patch_bay.draw();
 
         EndDrawing();
@@ -74,6 +80,8 @@ int main() {
 
     my_osc.init(48000, &my_patch_bay);
     my_filt.init(48000, &my_patch_bay);
+    my_envelope.init(48000);
+    my_vca.init();
     my_mixer.init();
 
     my_patch_bay.add("my_osc_tri", &my_osc._audio_tri_out);
@@ -84,6 +92,13 @@ int main() {
     my_patch_bay.add("my_osc_lfo_tri", &my_osc._lfo_tri_out);
     my_patch_bay.add("my_osc_lfo_saw", &my_osc._lfo_saw_out);
     my_patch_bay.add("my_osc_lfo_sqr", &my_osc._lfo_sqr_out);
+
+    my_patch_bay.add("env_trigger", &my_envelope._trigger);
+    my_patch_bay.add("env_out", &my_envelope._output);
+
+    my_patch_bay.add("vca_in_1", &my_vca._in_1);
+    my_patch_bay.add("vca_in_2", &my_vca._in_2);
+    my_patch_bay.add("vca_out", &my_vca._out_1);
 
     my_patch_bay.add("my_filt_in", &my_filt._in);
     my_patch_bay.add("my_filt_out", &my_filt._out);
