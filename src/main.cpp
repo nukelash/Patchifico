@@ -19,6 +19,7 @@ filter my_filt;
 mixer my_mixer;
 envelope_generator my_envelope;
 vca my_vca;
+sequencer my_sequencer;
 patch_manager my_patch_bay;
 
 void callback(ma_device* pDevice, void* pOutput, const void* pInput, ma_uint32 frameCount)
@@ -37,6 +38,7 @@ void callback(ma_device* pDevice, void* pOutput, const void* pInput, ma_uint32 f
         my_filt.process();
         my_envelope.process();
         my_vca.process();
+        my_sequencer.process();
         out[i] = my_mixer.process();
 
     }
@@ -45,7 +47,7 @@ void callback(ma_device* pDevice, void* pOutput, const void* pInput, ma_uint32 f
 }
 
 void gui_loop() {
-    InitWindow(1000, 400, "Virtual Modular Synth");
+    InitWindow(1000, 500, "Virtual Modular Synth");
     SetTargetFPS(60);
 
     bool showMessageBox = false;
@@ -67,6 +69,7 @@ void gui_loop() {
             my_mixer.draw();
             my_envelope.draw();
             my_vca.draw();
+            my_sequencer.draw();
             my_patch_bay.draw();
 
         EndDrawing();
@@ -82,6 +85,7 @@ int main() {
     my_filt.init(48000, &my_patch_bay);
     my_envelope.init(48000);
     my_vca.init();
+    my_sequencer.init(48000, 90);
     my_mixer.init();
 
     my_patch_bay.add("my_osc_tri", &my_osc._audio_tri_out);
@@ -99,6 +103,9 @@ int main() {
     my_patch_bay.add("vca_in_1", &my_vca._in_1);
     my_patch_bay.add("vca_in_2", &my_vca._in_2);
     my_patch_bay.add("vca_out", &my_vca._out_1);
+
+    my_patch_bay.add("sequencer_trig_out", &my_sequencer._trig);
+    my_patch_bay.add("sequencer_cv_out", &my_sequencer._cv);
 
     my_patch_bay.add("my_filt_in", &my_filt._in);
     my_patch_bay.add("my_filt_out", &my_filt._out);

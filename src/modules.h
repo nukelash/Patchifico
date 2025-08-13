@@ -527,6 +527,78 @@ private:
     Rectangle _module_box;
 };
 
+class sequencer {
+public:
+    sequencer() {}
+    ~sequencer() {}
+
+    void init(float sample_rate, float tempo) {
+
+        _module_box = {20, 330, 900, 100};
+        _cv.gui.init("CV Out", {_module_box.x + 5, _module_box.y + 5});
+        _trig.gui.init("Gate Out", {_module_box.x + 65, _module_box.y + 5});
+
+        _metronome.Init(tempo/60.0f*_num_steps, sample_rate); //multiplying by _num_steps should make it pulse once per step
+        _step = 0;
+    }
+
+    void process() {
+
+        int new_step = _metronome.Process();
+        _trig.value = _trig_pattern[_step] * new_step;
+
+        if(new_step) {
+            
+            _cv.value = _cv_pattern[_step];
+
+            _step++;
+            if (_step == _num_steps) {
+                _step = 0;
+            }
+        }
+    }
+
+    void draw() {
+        GuiGroupBox(_module_box, "Sequencer");
+
+        for(int i = 0; i < _num_steps; i++) {
+            Rectangle bounds = {_module_box.x+150+(i*50), _module_box.y + 10, 20, 20};
+            GuiCheckBox(bounds, "", &_trig_pattern[i]);
+            bounds.y += 30;
+            bounds.width = 40;
+            GuiSlider(bounds, "", "", &_cv_pattern[i], -1.0f, 1.0f);
+
+        }
+
+        if(_trig.value) {
+            DrawCircle(_module_box.x+10, _module_box.y+10, 5, RED);
+        }
+
+        _cv.gui.draw();
+        _trig.gui.draw();
+    }
+
+    void set_trig(int step, bool value) {
+        _trig_pattern[step] = value;
+    }
+
+    void set_cv(int step, float value) {
+        _cv_pattern[step] = value;
+    }
+
+    patch_source _trig;
+    patch_source _cv;
+private:
+    daisysp::Metro _metronome;
+
+    static const int _num_steps = 8;
+    int _step;
+    bool _trig_pattern[_num_steps] = {0};
+    float _cv_pattern[_num_steps] = {0.0f};
+
+    Rectangle _module_box;
+};
+
 class mixer {
 public:
     mixer() {}
