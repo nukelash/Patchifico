@@ -1,79 +1,72 @@
+#include <math.h>
+
 #include "raylib.h"
+#include "raymath.h"
 
 class knob {
 public:
     knob() {
         _position = {100, 100};
-        _radius = 60;
-        _drag_in_progress = false;
-        _knob_angle = 180;
-        _knob_augmentation = 0;
+        _radius = 40;
+        _is_dragging = false;
+        _knob_angle = 270;
+        _last_knob_angle = _knob_angle;
+        _knob_angle_change = 0;
     }
     ~knob() {}
 
     void draw() {
 
-        Vector2 mouse_location = GetMousePosition();
+        Vector2 mouse_position = GetMousePosition();
 
-        if(!_drag_in_progress && (IsMouseButtonDown(MOUSE_BUTTON_LEFT) && CheckCollisionPointCircle(mouse_location, _position, _radius))) {
-            _drag_in_progress = true;
-            _mouse_click_y = mouse_location.y;
+        // If we click a knob, set the flag and note the current mouse y position
+        if(IsMouseButtonPressed(MOUSE_BUTTON_LEFT) && CheckCollisionPointCircle(mouse_position, _position, _radius)) {
+            _is_dragging = true;
+            _mouse_click_y = mouse_position.y;
         }
 
-        if(_drag_in_progress && IsMouseButtonReleased(MOUSE_BUTTON_LEFT)) {
-            _knob_angle = _knob_angle + _knob_augmentation;
-            _knob_augmentation = 0;
+        // If the dragging flag is set and mouse is still held, update the change
+        if(_is_dragging && IsMouseButtonDown(MOUSE_BUTTON_LEFT)) {
+            _knob_angle_change = _mouse_click_y - mouse_position.y;
         }
 
-        if(_drag_in_progress && IsMouseButtonDown(MOUSE_BUTTON_LEFT)) {
-            _knob_augmentation = _mouse_click_y - mouse_location.y;
-        }
-        else {
-            _drag_in_progress = false;
-            _knob_augmentation = 0;
-        }
-        /*
-        get mouse position
-
-        2 states, drag in process or not
-        if not &  mouse collides with knob & mouse down: 
-            drag in process
-
-        if drag in process & mouse down:
-            compare mouse position to last mouse position:
-                change knob angle based on change in Y of mouse position
-        else
-            drag not in process
-        */
-
-
-        DrawCircle(_position.x, _position.y, _radius, RED);
-
-        int segment = 5;
-        float true_knob_angle = _knob_angle + _knob_augmentation;
-
-        //limit to range
-        if (true_knob_angle < 120.0) {
-            true_knob_angle = 120.0;
-        }
-        if (true_knob_angle > 420.0) {
-            true_knob_angle = 420.0;
+        // Whenever the mouse is released, we know we are no longer dragging and changes should reset
+        if(IsMouseButtonReleased(MOUSE_BUTTON_LEFT)) {
+            _last_knob_angle = _knob_angle;
+            _knob_angle_change = 0;
+            _is_dragging = false;
         }
 
-        DrawCircleSector(_position, 40, true_knob_angle-segment, true_knob_angle+segment, 2, BLACK);
+        // Apply any change
+        _knob_angle = _last_knob_angle + _knob_angle_change;
 
-        //_last_click_y = mouse_location.y;
+        // Limit to range
+        if (_knob_angle < 120.0) {
+            _knob_angle = 120.0;
+        }
+        if (_knob_angle > 420.0) {
+            _knob_angle = 420.0;
+        }
+
+        DrawCircle(_position.x, _position.y, _radius, BLACK);
+
+        Vector2 notch = {_radius-8.0f, 0};
+        notch = Vector2Rotate(notch, _knob_angle * M_PI / 180.0f);
+        notch = notch + _position;
+        DrawCircleV(notch, 5, WHITE);
+
     }
 
 private:
     Vector2 _position;
     int _radius;
 
-    bool _drag_in_progress;
+    bool _is_dragging;
     float _mouse_click_y;
 
+    float _last_knob_angle;
     float _knob_angle;
-    float _knob_augmentation;
+    float _knob_angle_change;
     // raylib convention is 3 o'clock is 0, 6 o'clock is 90, 9 is 180, etc.
 
     // so ideal knob range will go from like 120 to 60
