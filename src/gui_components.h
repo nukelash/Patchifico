@@ -1,3 +1,5 @@
+#pragma once
+
 #include <math.h>
 
 #include "raylib.h"
@@ -5,13 +7,17 @@
 
 class knob {
 public:
-    knob() {
-        _position = {100, 100};
-        _radius = 40;
+    knob(Vector2 position, int radius, float* parameter, float min_val, float max_val) {
+        _position = position;
+        _radius = radius;
         _is_dragging = false;
         _knob_angle = 270;
         _last_knob_angle = _knob_angle;
         _knob_angle_change = 0;
+        _parameter = parameter;
+
+        _min_parameter_value = min_val;
+        _max_parameter_value = max_val;
     }
     ~knob() {}
 
@@ -41,11 +47,11 @@ public:
         _knob_angle = _last_knob_angle + _knob_angle_change;
 
         // Limit to range
-        if (_knob_angle < 120.0) {
-            _knob_angle = 120.0;
+        if (_knob_angle < _min_angle) {
+            _knob_angle = _min_angle;
         }
-        if (_knob_angle > 420.0) {
-            _knob_angle = 420.0;
+        if (_knob_angle > _max_angle) {
+            _knob_angle = _max_angle;
         }
 
         DrawCircle(_position.x, _position.y, _radius, BLACK);
@@ -54,6 +60,9 @@ public:
         notch = Vector2Rotate(notch, _knob_angle * M_PI / 180.0f);
         notch = notch + _position;
         DrawCircleV(notch, 5, WHITE);
+
+        *_parameter = (_knob_angle - _min_angle) / (_max_angle - _min_angle); //0-1
+        *_parameter = (*_parameter * (_max_parameter_value - _min_parameter_value)) + _min_parameter_value; //min_val - max_val
 
     }
 
@@ -67,6 +76,14 @@ private:
     float _last_knob_angle;
     float _knob_angle;
     float _knob_angle_change;
+
+    float _min_angle = 120;
+    float _max_angle = 420;
+
+    float _min_parameter_value;
+    float _max_parameter_value;
+
+    float* _parameter;
     // raylib convention is 3 o'clock is 0, 6 o'clock is 90, 9 is 180, etc.
 
     // so ideal knob range will go from like 120 to 60

@@ -23,7 +23,6 @@ vca my_vca;
 sequencer my_sequencer;
 patch_manager my_patch_bay;
 
-knob my_knob;
 
 void callback(ma_device* pDevice, void* pOutput, const void* pInput, ma_uint32 frameCount)
 {
@@ -74,8 +73,6 @@ void gui_loop() {
             my_vca.draw();
             my_sequencer.draw();
             my_patch_bay.draw();
-
-            my_knob.draw();
 
         EndDrawing();
     }

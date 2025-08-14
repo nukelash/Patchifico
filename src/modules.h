@@ -5,6 +5,8 @@
 #include "raygui.h"
 #include "raylib.h"
 
+#include "gui_components.h"
+
 #include <unordered_map>
 
 class patch_point_gui {
@@ -277,7 +279,7 @@ public:
         _lfo_saw_out.gui.init("Saw", {_module_box.x+50, _module_box.y+180});
         _lfo_sqr_out.gui.init("Sqr", {_module_box.x+95, _module_box.y+180});
 
-        
+        _frequency_knob = new knob({_module_box.x + 10, _module_box.y + 80}, 40, &_audio_frequency, 20, 500);
     }
 
     void draw() {
@@ -304,6 +306,8 @@ public:
         for (auto i : _lfo_outs) {
             i->gui.draw();
         }
+
+        _frequency_knob->draw();
     }
 
     float process() {
@@ -363,6 +367,8 @@ private:
     patch_manager* _patch_bay;
 
     Rectangle _module_box;
+
+    knob* _frequency_knob;
 };
 
 class filter {
