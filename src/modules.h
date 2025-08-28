@@ -117,99 +117,32 @@ public:
     }
     
     void draw() {
-        //TODO: Connecting and unconnecting a lot leads to segfault. This should be cleaned up significantly
+        //TODO: Connecting and unconnecting a lot leads to segfault occasionally?
         Vector2 mouse_location = GetMousePosition();
         std::string name;
         Vector2 patch_coords;
-        /*
-        Existing logic:
-        if no connection and mouseclicked
-            if colliding with patch source
-                if patch source is in use
-                    make a new connection between source and mouse
-                make a new connection between source and mouse anyways?
-            else if colliding with patch dest
-                if patch dest is in use
-                    make a new connection between dest and mouse
-                do it again anyways?
-        else if connection
-            update coordinates to mouse position
-            if mouse is clicked
-                if connecting with patch source
-                    pass from mouse to new source
-                if connecting with patch dest
-                    pass from mouse to new dest
-                if not connecting to anything
-                    remove connection entire (cancel)
-        
 
-        note:: maybe i should reapproach this without creating/deleting connections, but by mutating ones that exist. Create a new function called hookup_audio or open_stream or something that turns on when a valid connection is made
-        New logic:
-        if no connection
-            if mouse clicked on patch point
-                connection = true
-                if not occupied by a connection
-                    if patch point is source
-                        set in_progress_cable vars  (dest == mouse)
-                    else
-                        set in_progress_cable vars (src == mouse)
-                else
-                    if patch point is source
-                        set in_progress_cable vars
-                    else
-                        set in_progress_cable vars
-                    remove existing cable from vector
-
-        if connection
-            update mouse coordinates:
-            if src == mouse
-                update src coords
-            else
-                update dest  coords
-
-            if mouse released
-                if on patch point
-                    create new patch cable, add to vector
-                else
-                    delete connection
-                connection = false
-                
-
-        */
         if(!_connection_in_progress) {
             if(IsMouseButtonPressed(MOUSE_BUTTON_LEFT) && point_colliding_patch_point(mouse_location, &name, &patch_coords)) {
                 _connection_in_progress = true;
 
                 bool is_source;
                 patch_cable* cable;
-                //patch_cable** p_cable;
                 
                 if(patch_point_occupied(name, &cable, &is_source)){
                     // find connection occupying this patch point
-                    std::cout << "occupied" << std::endl;
                     if(is_source) {
-                        // std::cout << "source" << std::endl;
-                        // cable->_src_name.clear();
-                        // cable->_src_name.append("mouse");
-                        // cable->_src_coordinates = mouse_location;
                         _in_progress_cable._src_name = "mouse";
                         _in_progress_cable._src_coordinates = mouse_location;
-                        std::cout << cable->_dest_coordinates.x << std::endl;
                         _in_progress_cable._dest_coordinates = cable->_dest_coordinates;
                         _in_progress_cable._dest_name = cable->_dest_name;
                     }
                     else {
-                        // std::cout << "destination" << std::endl;
-                        // cable->_dest_name.clear();
-                        // cable->_dest_name.append("mouse");
-                        // cable->_dest_coordinates = mouse_location;
                         _in_progress_cable._dest_name = "mouse";
                         _in_progress_cable._dest_coordinates = mouse_location;
                         _in_progress_cable._src_coordinates = cable->_src_coordinates;
                         _in_progress_cable._src_name = cable->_src_name;
                     }
-                    //_patch_cables.insert({"mouse", cable});
-                    // _patch_cables.erase(key);
                     _in_progress_cable._color = cable->_color;
 
                     // see erase-remove idiom
@@ -218,7 +151,6 @@ public:
                     
                 }
                 else {
-                    //patch_cable* c = new patch_cable();
                     if(is_source) {
                         _in_progress_cable._src_name = name;
                         _in_progress_cable._src_coordinates = patch_coords;
@@ -231,16 +163,8 @@ public:
                         _in_progress_cable._dest_name = name;
                         _in_progress_cable._dest_coordinates = patch_coords;
                     }
-                    //_patch_cables.insert({"mouse", c});
-                    //_new_patch_cables.push_back(c);
                     _in_progress_cable._color = patch_colors[rand() % 4];
                 }
-                //instead of just creating a new dummy patch, i need to check if something is already patched here, and create like a reverse dummy patch for it
-                //dummy_connect(name, patch_coords);
-                //_connection_in_progress = true;
-                // for (auto i : _new_patch_cables) {
-                //     std::cout << "cable: " << i.first << std::endl;
-                // }
             }
         }
 
@@ -258,8 +182,6 @@ public:
 
             if(IsMouseButtonReleased(MOUSE_BUTTON_LEFT)) {
                 if(point_colliding_patch_point(mouse_location, &name, &patch_coords)) {
-                    //check if valid (i.e. 1 source 1 destination)
-                    //delete dummy and create real connection
                     std::string source_name, destination_name;
                     if(check_valid_connection(in_progress_patch_name, name, &source_name, &destination_name)) {
                         connect(source_name, destination_name, _in_progress_cable._color);
@@ -270,106 +192,10 @@ public:
             }
         }
 
-        /*
-        if ((!_connection_in_progress) && IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) {
-            if (point_colliding_patch_source(mouse_location, &name)) {
-
-                // if this name exists i.e the patch point is in use
-                for (auto i : _connections) {
-                    auto idx = i.first;
-                    if (_connections[idx]->_src_name == name) {
-                        _connection_in_progress = true;
-                        
-                        connection* c = new connection();
-                        c->_dest_name = _connections[idx]->_dest_name;
-                        c->_dest_coordinates = _connections[idx]->_dest_coordinates;
-                        c->_src_name = "mouse";
-                        c->_src_coordinates = mouse_location;
-                        _connections.insert({"mouse", c});
-                        disconnect(_connections[idx]->_dest_name);
-                        _connections.erase(idx);
-                        //return;
-                    }
-                }
-
-
-                _connection_in_progress = true;
-                connection* c = new connection();
-                c->_src_name = name;
-                c->_src_coordinates = _sources[name]->gui._circle_position;
-                c->_dest_name = "mouse";
-                c->_dest_coordinates = mouse_location;
-                _connections.insert({"mouse", c});
-            }
-            else if (point_colliding_patch_destination(mouse_location, &name)) {
-                for (auto i : _connections) {
-                    auto idx = i.first;
-                    if (_connections[idx]->_dest_name == name) {
-                        _connection_in_progress = true;
-                        
-                        connection* c = new connection();
-                        c->_src_name = _connections[idx]->_src_name;
-                        c->_src_coordinates = _connections[idx]->_src_coordinates;
-                        c->_dest_name = "mouse";
-                        c->_dest_coordinates = mouse_location;
-                        _connections.insert({"mouse", c});
-                        disconnect(_connections[idx]->_dest_name);
-                        _connections.erase(idx);
-                        //return; // for some reason commenting out this return prevents stuttering... there may be something backwards when the next connection gets made though?
-                    }
-                }
-                
-                _connection_in_progress = true;
-                connection* c = new connection();
-                c->_src_name = "mouse";
-                c->_src_coordinates = mouse_location;
-                c->_dest_name = name;
-                c->_dest_coordinates = _destinations[name]->gui._circle_position;
-                _connections.insert({"mouse", c});
-            }
-        }
-        else if (_connection_in_progress) {
-            if (_connections["mouse"]->_dest_name == "mouse") {
-                _connections["mouse"]->_dest_coordinates = mouse_location;
-            }
-            else if (_connections["mouse"]->_src_name == "mouse") {
-                _connections["mouse"]->_src_coordinates = mouse_location;
-            }
-            
-            if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) {
-                if (point_colliding_patch_source(mouse_location, &name) && (_connections["mouse"]->_src_name == "mouse")) {
-                    connect(name, _connections["mouse"]->_dest_name);
-                    _connections.erase("mouse");
-                    _connection_in_progress = false;
-
-                }
-                else if (point_colliding_patch_destination(mouse_location, &name) && (_connections["mouse"]->_dest_name == "mouse")) {
-                    connect(_connections["mouse"]->_src_name, name);
-                    _connections.erase("mouse");
-                    _connection_in_progress = false;
-                }
-                else {
-                    _connection_in_progress = false;
-                    _connections.erase("mouse");
-                }
-            }
-        }
-        */
-
         for(auto i : _new_patch_cables) {
-            //auto cur = i.first;
             i->draw();
         }
     }
-
-    // void dummy_connect(std::string patch_name, Vector2 patch_coords) {
-    //     patch_cable* c = new patch_cable();
-    //     c->_src_name = patch_name;
-    //     c->_dest_name = "mouse";
-
-    //     c->_src_coordinates = patch_coords;
-    //     _patch_cables.insert({"mouse", c});
-    // }
 
     void connect(std::string source_name, std::string dest_name, Color color) {
         patch_destination* dest = _destinations[dest_name];
@@ -382,6 +208,7 @@ public:
 
         dest->connected = true;
 
+        // TODO: I don't really delete these anywhere, should fix
         patch_cable* c = new patch_cable(color);
         c->_src_name = source_name;
         c->_src_coordinates = _sources[source_name]->gui._circle_position;
@@ -555,7 +382,6 @@ public:
         float x_index = _module_box.x + x_pad;
         GuiGroupBox(_module_box, "VCO");
 
-        //GuiSlider((Rectangle) {x_index, y_index, _module_box.width - (2*x_pad), 20}, "Frequency", "", &_audio_frequency, 20, 500);
         _frequency_knob->draw();
         y_index += 160;
 
@@ -564,8 +390,6 @@ public:
         for (auto i : _audio_outs) {
             i->gui.draw();
         }
-
-        
 
         _frequency_knob->draw();
     }
@@ -601,14 +425,6 @@ private:
     daisysp::Oscillator _audio_sqr;
     std::vector<daisysp::Oscillator*> _audio_oscillators = {&_audio_tri, &_audio_saw, &_audio_sqr};
     float _audio_frequency;
-    //int _wavetype;
-
-    
-
-    //int _out_counter;
-    
-
-    //patch_destinations* _patch_destinations;
 
     patch_manager* _patch_bay;
 
@@ -729,16 +545,6 @@ public:
         float x_index = _module_box.x + x_pad;
         GuiGroupBox(_module_box, "VCF");
 
-        // if (GuiSlider((Rectangle) {x_index, y_index, _module_box.width - (2*x_pad), 20}, "Frequency", "", &_frequency, 20, 15000)) {
-        //     _filter.SetFreq(_frequency);
-        // }
-        y_index += y_pad;
-
-        // if (GuiSlider((Rectangle) {x_index, y_index, _module_box.width - (2*x_pad), 20}, "Resonance", "", &_resonance, 0.0, 2.0)) {
-        //     _filter.SetRes(_resonance);
-        // }
-        y_index += y_pad;
-
         _in.gui.draw();
         _out.gui.draw();
         _cutoff_knob->draw();
@@ -803,16 +609,6 @@ public:
         int x_pad = 5;
         float x_index = _module_box.x + x_pad;
         GuiGroupBox(_module_box, "Envelope");
-
-        // if (GuiSlider((Rectangle) {x_index, y_index, _module_box.width - (2*x_pad), 20}, "Attack", "", &_attack, 0.01, 2.0)) {
-        //     _env.SetTime(daisysp::ADENV_SEG_ATTACK, _attack);
-        // }
-        y_index += y_pad;
-
-        // if (GuiSlider((Rectangle) {x_index, y_index, _module_box.width - (2*x_pad), 20}, "Decay", "", &_decay, 0.01, 2.0)) {
-        //     _env.SetTime(daisysp::ADENV_SEG_DECAY, _decay);
-        // }
-        y_index += y_pad;
 
         if (GuiButton((Rectangle){_module_box.x+15, _module_box.y+15, 30, 30}, "Trigger")) {
             _env.Trigger();
@@ -973,8 +769,6 @@ public:
             GuiCheckBox(bounds, "", &_trig_pattern[i]);
             bounds.y += 30;
             bounds.width = 40;
-            //GuiSlider(bounds, "", "", &_cv_pattern[i], -1.0f, 1.0f);
-
         }
 
         if(_trig.value) {
@@ -1046,12 +840,6 @@ public:
         int x_pad = 5;
         float x_index = _module_box.x + x_pad;
         GuiGroupBox(_module_box, "Mixer");
-
-        // if (GuiSlider((Rectangle) {x_index, y_index, _module_box.width - (2*x_pad), 20}, "Gain 1", "", &_gain_1, 0.0, 1.0)) {}
-        // y_index += y_pad;
-
-        // if (GuiSlider((Rectangle) {x_index, y_index, _module_box.width - (2*x_pad), 20}, "Gain 2", "", &_gain_2, 0.0, 1.0)) {}
-        // y_index += y_pad;
 
         _in_1.gui.draw();
         _in_2.gui.draw();
