@@ -53,7 +53,7 @@ void callback(ma_device* pDevice, void* pOutput, const void* pInput, ma_uint32 f
 }
 
 void gui_loop() {
-    InitWindow(1000, 500, "Virtual Modular Synth");
+    InitWindow(720, 420, "Virtual Modular Synth");
     SetTargetFPS(60);
 
     bool showMessageBox = false;

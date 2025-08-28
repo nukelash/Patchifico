@@ -8,6 +8,17 @@
 #include "gui_components.h"
 
 #include <unordered_map>
+#include <algorithm>
+
+
+Color accent1 = {100, 49, 115, 255};
+Color accent2 = {134, 165, 156, 255};
+Color accent3 = {125, 91, 166, 255};
+Color accent4 = {137, 206, 148, 255};
+
+Color patch_colors[4] = {accent1, accent2, accent3, accent4};
+
+
 
 class patch_point_gui {
 public:
@@ -67,14 +78,33 @@ public:
     patch_manager() {}
     ~patch_manager() {}
 
-    struct connection {
+    struct patch_cable {
+
+        patch_cable() {
+            //_color = patch_colors[rand() % 4];
+        }
+
+        patch_cable(Color color){
+            _color = color;
+        }
+
         std::string _src_name;
         Vector2 _src_coordinates;
         std::string _dest_name;
         Vector2 _dest_coordinates;
+        Color _color;
 
         void draw() {
-            DrawLineEx(_src_coordinates, _dest_coordinates, 4, RED);
+            DrawCircleV(_src_coordinates, 10, _color);
+            DrawCircleV(_dest_coordinates, 10, _color);
+
+            float max_x = fmax(_dest_coordinates.x,_src_coordinates.x);
+            float min_x = fmin(_dest_coordinates.x, _src_coordinates.x);
+            Vector2 midpoint = {((max_x-min_x)/2.0f)+min_x, fmax(_src_coordinates.y, _dest_coordinates.y)+20};
+
+            Vector2 points[5]  = {_src_coordinates, _src_coordinates, midpoint, _dest_coordinates,  _dest_coordinates};
+            DrawSplineCatmullRom(points, 5, 5, _color);
+            //DrawLineEx(_src_coordinates, _dest_coordinates, 4, RED);
         }
     };
 
@@ -87,10 +117,160 @@ public:
     }
     
     void draw() {
-
+        //TODO: Connecting and unconnecting a lot leads to segfault. This should be cleaned up significantly
         Vector2 mouse_location = GetMousePosition();
         std::string name;
+        Vector2 patch_coords;
+        /*
+        Existing logic:
+        if no connection and mouseclicked
+            if colliding with patch source
+                if patch source is in use
+                    make a new connection between source and mouse
+                make a new connection between source and mouse anyways?
+            else if colliding with patch dest
+                if patch dest is in use
+                    make a new connection between dest and mouse
+                do it again anyways?
+        else if connection
+            update coordinates to mouse position
+            if mouse is clicked
+                if connecting with patch source
+                    pass from mouse to new source
+                if connecting with patch dest
+                    pass from mouse to new dest
+                if not connecting to anything
+                    remove connection entire (cancel)
+        
 
+        note:: maybe i should reapproach this without creating/deleting connections, but by mutating ones that exist. Create a new function called hookup_audio or open_stream or something that turns on when a valid connection is made
+        New logic:
+        if no connection
+            if mouse clicked on patch point
+                connection = true
+                if not occupied by a connection
+                    if patch point is source
+                        set in_progress_cable vars  (dest == mouse)
+                    else
+                        set in_progress_cable vars (src == mouse)
+                else
+                    if patch point is source
+                        set in_progress_cable vars
+                    else
+                        set in_progress_cable vars
+                    remove existing cable from vector
+
+        if connection
+            update mouse coordinates:
+            if src == mouse
+                update src coords
+            else
+                update dest  coords
+
+            if mouse released
+                if on patch point
+                    create new patch cable, add to vector
+                else
+                    delete connection
+                connection = false
+                
+
+        */
+        if(!_connection_in_progress) {
+            if(IsMouseButtonPressed(MOUSE_BUTTON_LEFT) && point_colliding_patch_point(mouse_location, &name, &patch_coords)) {
+                _connection_in_progress = true;
+
+                bool is_source;
+                patch_cable* cable;
+                //patch_cable** p_cable;
+                
+                if(patch_point_occupied(name, &cable, &is_source)){
+                    // find connection occupying this patch point
+                    std::cout << "occupied" << std::endl;
+                    if(is_source) {
+                        // std::cout << "source" << std::endl;
+                        // cable->_src_name.clear();
+                        // cable->_src_name.append("mouse");
+                        // cable->_src_coordinates = mouse_location;
+                        _in_progress_cable._src_name = "mouse";
+                        _in_progress_cable._src_coordinates = mouse_location;
+                        std::cout << cable->_dest_coordinates.x << std::endl;
+                        _in_progress_cable._dest_coordinates = cable->_dest_coordinates;
+                        _in_progress_cable._dest_name = cable->_dest_name;
+                    }
+                    else {
+                        // std::cout << "destination" << std::endl;
+                        // cable->_dest_name.clear();
+                        // cable->_dest_name.append("mouse");
+                        // cable->_dest_coordinates = mouse_location;
+                        _in_progress_cable._dest_name = "mouse";
+                        _in_progress_cable._dest_coordinates = mouse_location;
+                        _in_progress_cable._src_coordinates = cable->_src_coordinates;
+                        _in_progress_cable._src_name = cable->_src_name;
+                    }
+                    //_patch_cables.insert({"mouse", cable});
+                    // _patch_cables.erase(key);
+                    _in_progress_cable._color = cable->_color;
+
+                    // see erase-remove idiom
+                    _new_patch_cables.erase(std::remove(_new_patch_cables.begin(), _new_patch_cables.end(), cable), _new_patch_cables.end());
+                    disconnect(cable->_dest_name);
+                    
+                }
+                else {
+                    //patch_cable* c = new patch_cable();
+                    if(is_source) {
+                        _in_progress_cable._src_name = name;
+                        _in_progress_cable._src_coordinates = patch_coords;
+                        _in_progress_cable._dest_name = "mouse";
+                        _in_progress_cable._dest_coordinates = mouse_location;
+                    }
+                    else {
+                        _in_progress_cable._src_name = "mouse";
+                        _in_progress_cable._src_coordinates = mouse_location;
+                        _in_progress_cable._dest_name = name;
+                        _in_progress_cable._dest_coordinates = patch_coords;
+                    }
+                    //_patch_cables.insert({"mouse", c});
+                    //_new_patch_cables.push_back(c);
+                    _in_progress_cable._color = patch_colors[rand() % 4];
+                }
+                //instead of just creating a new dummy patch, i need to check if something is already patched here, and create like a reverse dummy patch for it
+                //dummy_connect(name, patch_coords);
+                //_connection_in_progress = true;
+                // for (auto i : _new_patch_cables) {
+                //     std::cout << "cable: " << i.first << std::endl;
+                // }
+            }
+        }
+
+        if(_connection_in_progress) {
+            std::string in_progress_patch_name;
+            if(_in_progress_cable._src_name == "mouse") {
+                _in_progress_cable._src_coordinates = mouse_location;
+                in_progress_patch_name = _in_progress_cable._dest_name;
+            }
+            else if(_in_progress_cable._dest_name == "mouse") {
+                _in_progress_cable._dest_coordinates = mouse_location;
+                in_progress_patch_name = _in_progress_cable._src_name;
+            }
+            _in_progress_cable.draw();
+
+            if(IsMouseButtonReleased(MOUSE_BUTTON_LEFT)) {
+                if(point_colliding_patch_point(mouse_location, &name, &patch_coords)) {
+                    //check if valid (i.e. 1 source 1 destination)
+                    //delete dummy and create real connection
+                    std::string source_name, destination_name;
+                    if(check_valid_connection(in_progress_patch_name, name, &source_name, &destination_name)) {
+                        connect(source_name, destination_name, _in_progress_cable._color);
+                    }
+                }
+
+                _connection_in_progress = false;
+            }
+        }
+
+        /*
         if ((!_connection_in_progress) && IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) {
             if (point_colliding_patch_source(mouse_location, &name)) {
 
@@ -174,14 +354,24 @@ public:
                 }
             }
         }
+        */
 
-        for(auto i : _connections) {
-            auto cur = i.first;
-            _connections[cur]->draw();
+        for(auto i : _new_patch_cables) {
+            //auto cur = i.first;
+            i->draw();
         }
     }
 
-    void connect(std::string source_name, std::string dest_name) {
+    // void dummy_connect(std::string patch_name, Vector2 patch_coords) {
+    //     patch_cable* c = new patch_cable();
+    //     c->_src_name = patch_name;
+    //     c->_dest_name = "mouse";
+
+    //     c->_src_coordinates = patch_coords;
+    //     _patch_cables.insert({"mouse", c});
+    // }
+
+    void connect(std::string source_name, std::string dest_name, Color color) {
         patch_destination* dest = _destinations[dest_name];
 
         if (dest->connected) {
@@ -192,19 +382,25 @@ public:
 
         dest->connected = true;
 
-        connection* c = new connection();
+        patch_cable* c = new patch_cable(color);
         c->_src_name = source_name;
         c->_src_coordinates = _sources[source_name]->gui._circle_position;
         c->_dest_name = dest_name;
         c->_dest_coordinates = _destinations[dest_name]->gui._circle_position;
-        _connections.insert({dest_name, c});
+        _new_patch_cables.push_back(c);
     }
 
     void disconnect(std::string dest_name) {
         _destinations[dest_name]->source = nullptr;
         _destinations[dest_name]->connected = false;
         //need to delete pointer i.e. memory leak
-        _connections.erase(dest_name);
+        for(int i = 0; i < _new_patch_cables.size(); i++) {
+            if(_new_patch_cables[i]->_dest_name == dest_name) {
+                _new_patch_cables.erase(_new_patch_cables.begin() + i);
+            }
+            
+        }
+        
     }
 
 private:
@@ -231,10 +427,89 @@ private:
         return false;
     }
 
+    bool point_colliding_patch_point(Vector2 point, std::string* name, Vector2* patch_coordinates) {
+        for(auto i : _sources) {
+            auto idx = i.first;
+            if (CheckCollisionPointCircle(point, _sources[idx]->gui._circle_position, _sources[idx]->gui._radius)) {
+                *name = idx;
+                *patch_coordinates = _sources[idx]->gui._circle_position;
+                return true;
+            }
+        }
+        for(auto i : _destinations) {
+            auto idx = i.first;
+            if (CheckCollisionPointCircle(point, _destinations[idx]->gui._circle_position, _destinations[idx]->gui._radius)) {
+                *name = idx;
+                *patch_coordinates = _destinations[idx]->gui._circle_position;
+                return true;
+            }
+        }
+        return false;
+    }
+
+    bool patch_point_occupied(std::string name, patch_cable** cable, bool* is_source) {
+        for (auto c : _new_patch_cables) {
+            //auto k = i.first;
+            if (c->_src_name == name) {
+                *cable = c;
+                *is_source = true;
+                return true;
+            }
+            if (c->_dest_name == name) {
+                *cable = c;
+                *is_source = false;
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    bool check_valid_connection(std::string name1, std::string name2, std::string* source_name, std::string* destination_name) {
+        //check if name1 and name2 represent 1 source and 1 destination
+        int source_hits, destination_hits = 0;
+        for(auto src : _sources) {
+            std::string src_name = src.first;
+            if(src_name == name1) {
+                *source_name = name1;
+                source_hits++;
+            }
+            if(src_name == name2) {
+                *source_name = name2;
+                source_hits++;
+            }
+            // if (CheckCollisionPointCircle(point, _sources[idx]->gui._circle_position, _sources[idx]->gui._radius)) {
+            //     *name = idx;
+            //     *patch_coordinates = _sources[idx]->gui._circle_position;
+            //     return true;
+            // }
+        }
+        for(auto dest : _destinations) {
+            std::string dest_name = dest.first;
+            if(dest_name == name1) {
+                *destination_name = name1;
+                destination_hits++;
+            }
+            if(dest_name == name2) {
+                *destination_name = name2;
+                destination_hits++;
+            }
+        }
+
+        if((destination_hits == 1) || (source_hits == 1)) {
+            return true;
+        }
+
+        return false;
+    }
+
     std::unordered_map<std::string, patch_source*> _sources;
     std::unordered_map<std::string, patch_destination*> _destinations;
 
-    std::unordered_map<std::string, connection*> _connections;
+    //std::unordered_map<std::string, patch_cable*> _patch_cables;
+
+    std::vector<patch_cable*> _new_patch_cables;
+    patch_cable _in_progress_cable;
 
     bool _connection_in_progress = false;
 };
