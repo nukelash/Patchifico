@@ -25,7 +25,7 @@ public:
     patch_point_gui() {}
     ~patch_point_gui() {}
 
-    void init(std::string label, Vector2 position) {
+    void init(std::string label, Vector2 position, bool is_source) {
 
         // float width = 40;
         // float height = 100;
@@ -39,10 +39,12 @@ public:
         // y = position.y + (0.3*height);
         _label_position = {position.x, position.y-10};
         _label = label; 
+
+        _color = (is_source ? RED : BLUE);
     }
 
     void draw() {
-        DrawCircleV(_circle_position, _radius, RED);
+        DrawCircleV(_circle_position, _radius, _color);
         DrawCircleV(_circle_position, _radius-3, GetColor(GuiGetStyle(DEFAULT, BACKGROUND_COLOR)));
         DrawText(_label.c_str(), _label_position.x, _label_position.y, 11, BLACK);
     }
@@ -51,6 +53,7 @@ public:
     Vector2 _label_position;
     Vector2 _circle_position;
     float _radius;
+    Color _color;
 };
 
 struct patch_source {
@@ -363,11 +366,12 @@ public:
         _module_box.width = 255;
         _module_box.height = 135;
 
-        _audio_frequency_mod.gui.init("Freq Mod", {_module_box.x+82.5f, _module_box.y+82.5f});
+        _audio_frequency_mod.gui.init("Freq Mod", {_module_box.x+82.5f, _module_box.y+82.5f}, false);
+        _pulse_width.gui.init("PW", {_module_box.x+142.5f, _module_box.y+22.5f}, false);
 
-        _audio_tri_out.gui.init("Tri", {_module_box.x+202.5f, _module_box.y+22.5f});
-        _audio_saw_out.gui.init("Saw", {_module_box.x+202.5f, _module_box.y+82.5f});
-        _audio_sqr_out.gui.init("Sqr", {_module_box.x+142.5f, _module_box.y+82.5f});
+        _audio_tri_out.gui.init("Tri", {_module_box.x+202.5f, _module_box.y+22.5f}, true);
+        _audio_saw_out.gui.init("Saw", {_module_box.x+202.5f, _module_box.y+82.5f}, true);
+        _audio_sqr_out.gui.init("Sqr", {_module_box.x+142.5f, _module_box.y+82.5f}, true);
 
         float freq_radius = 30;
         _frequency_knob = new knob({_module_box.x + freq_radius + 22.5f, _module_box.y + freq_radius + 22.5f},freq_radius, &_audio_frequency, 20, 500);
@@ -386,6 +390,7 @@ public:
         y_index += 160;
 
         _audio_frequency_mod.gui.draw();
+        _pulse_width.gui.draw();
 
         for (auto i : _audio_outs) {
             i->gui.draw();
@@ -398,6 +403,7 @@ public:
 
         for (auto i : _audio_oscillators) {
             i->SetFreq(_audio_frequency + (100*_audio_frequency_mod.val()));
+            i->SetPw((_pulse_width.val()+1.0f)/2.0f);
         }
 
         for (int i = 0; i < _audio_oscillators.size(); i++) {
@@ -417,6 +423,7 @@ public:
     std::vector<patch_source*> _audio_outs = {&_audio_tri_out, &_audio_saw_out, &_audio_sqr_out};
 
     patch_destination _audio_frequency_mod;
+    patch_destination _pulse_width;
 
 private:
 
@@ -452,9 +459,12 @@ public:
         _lfo_saw.SetWaveform(daisysp::Oscillator::WAVE_SAW);
         _lfo_sqr.SetWaveform(daisysp::Oscillator::WAVE_SQUARE);
 
-        _lfo_tri_out.gui.init("Tri", {_module_box.x+135, _module_box.y+15});
-        _lfo_saw_out.gui.init("Saw", {_module_box.x+135, _module_box.y+67.f});
-        _lfo_sqr_out.gui.init("Sqr", {_module_box.x+75, _module_box.y+67.5f});
+        _lfo_tri_out.gui.init("Tri", {_module_box.x+135, _module_box.y+15}, true);
+        _lfo_saw_out.gui.init("Saw", {_module_box.x+135, _module_box.y+67.f}, true);
+        _lfo_sqr_out.gui.init("Sqr", {_module_box.x+75, _module_box.y+67.5f}, true);
+
+        _pulse_width.gui.init("PW", {_module_box.x+15, _module_box.y+67.5f}, false);
+        _retrig.gui.init("Reset", {_module_box.x+15, _module_box.y+15}, false);
 
         float radius = 22.5f;
         _frequency_knob  = new knob({_module_box.x+67.5f+radius, _module_box.y+7.5f+radius}, radius, &_lfo_frequency, 0.01, 50);
@@ -469,11 +479,21 @@ public:
         for (auto i : _lfo_outs) {
             i->gui.draw();
         }
+
+        _pulse_width.gui.draw();
+        _retrig.gui.draw();
     }
 
     float process() {
         for (auto i : _lfo_oscillators) {
             i->SetFreq(_lfo_frequency);
+            i->SetPw((_pulse_width.val()+1.0f)/2.0f);
+        }
+
+        if((_last_retrig_value <= 0.5f) && (_retrig.val() >0.5f)) {
+            for (auto i : _lfo_oscillators) {
+                i->Reset();
+            }
         }
 
         for (int i = 0; i < _lfo_oscillators.size(); i++) {
@@ -485,6 +505,9 @@ public:
     patch_source _lfo_saw_out;
     patch_source _lfo_sqr_out;
     std::vector<patch_source*> _lfo_outs = {&_lfo_tri_out, &_lfo_saw_out, &_lfo_sqr_out};
+
+    patch_destination _pulse_width;
+    patch_destination _retrig;
 
 private:
 
@@ -499,6 +522,8 @@ private:
     Rectangle _module_box;
 
     knob* _frequency_knob;
+
+    float _last_retrig_value = 0.0f;
 };
 
 class filter {
@@ -516,8 +541,9 @@ public:
 
         _module_box = {292.5f, 45, 195, 135};
 
-        _in.gui.init("input", {_module_box.x+22.5f, _module_box.y+82.5f});
-        _out.gui.init("output", {_module_box.x+142.5f, _module_box.y+82.5f});
+        _in.gui.init("input", {_module_box.x+22.5f, _module_box.y+82.5f}, false);
+        _out.gui.init("output", {_module_box.x+142.5f, _module_box.y+82.5f}, true);
+        _cutoff_mod.gui.init("cutoff", {_module_box.x+82.5f, _module_box.y+82.5f}, false);
 
         float radius = 22.5f;
         _cutoff_knob = new knob({_module_box.x+45+radius, _module_box.y+22.5f+radius}, radius, &_frequency, 20, 15000);
@@ -528,7 +554,7 @@ public:
 
     float process() {
 
-        _filter.SetFreq(_frequency);
+        _filter.SetFreq(_frequency+(25.0f*_cutoff_mod.val()));
         _filter.SetRes(_resonance);
 
         _filter.Process(_in.val());
@@ -547,11 +573,13 @@ public:
 
         _in.gui.draw();
         _out.gui.draw();
+        _cutoff_mod.gui.draw();
         _cutoff_knob->draw();
         _resonance_knob->draw();
     }
 
     patch_destination _in;
+    patch_destination _cutoff_mod;
     patch_source _out;
 
 private:
@@ -581,8 +609,8 @@ public:
         _decay = 0.5;
         _last_trig_value = 0.0;
 
-        _trigger.gui.init("trigger", {_module_box.x+15, _module_box.y+67.5f});
-        _output.gui.init("env out", {_module_box.x+112.5f, _module_box.y+41.25f});
+        _trigger.gui.init("trigger", {_module_box.x+15, _module_box.y+67.5f}, false);
+        _output.gui.init("env out", {_module_box.x+112.5f, _module_box.y+41.25f}, true);
 
         float radius = 22.5f;
         _attack_knob = new knob({_module_box.x+60+radius, _module_box.y+7.5f+radius}, radius, &_attack, 0.01, 1.0);
@@ -644,10 +672,10 @@ public:
     void init() {
         _module_box = {217.5, 187.5, 105, 112.5};
 
-        _in.gui.init("in", {_module_box.x+15, _module_box.y+15});
-        _out1.gui.init("out", {_module_box.x+60, _module_box.y+15});
-        _out2.gui.init("out", {_module_box.x+15, _module_box.y+67.5f});
-        _out3.gui.init("out", {_module_box.x+60, _module_box.y+67.5f});
+        _in.gui.init("in", {_module_box.x+15, _module_box.y+15}, false);
+        _out1.gui.init("out", {_module_box.x+60, _module_box.y+15}, true);
+        _out2.gui.init("out", {_module_box.x+15, _module_box.y+67.5f}, true);
+        _out3.gui.init("out", {_module_box.x+60, _module_box.y+67.5f}, true);
     }
 
     void draw() {
@@ -682,13 +710,13 @@ public:
 
     void init() {
         _module_box = {495, 45, 97.5f, 255};
-        _in_a1.gui.init("ina1", {_module_box.x+15, _module_box.y+22.5f});
-        _in_a2.gui.init("ina2", {_module_box.x+15, _module_box.y+82.5f});
-        _out_a1.gui.init("outa1", {_module_box.x+52.5f, _module_box.y+52.5f});
+        _in_a1.gui.init("ina1", {_module_box.x+15, _module_box.y+22.5f}, false);
+        _in_a2.gui.init("ina2", {_module_box.x+15, _module_box.y+82.5f}, false);
+        _out_a1.gui.init("outa1", {_module_box.x+52.5f, _module_box.y+52.5f}, true);
 
-        _in_b1.gui.init("inb1", {_module_box.x+15, _module_box.y+142.5f});
-        _in_b2.gui.init("inb2", {_module_box.x+15, _module_box.y+202.5f});
-        _out_b1.gui.init("outb1", {_module_box.x+52.5f, _module_box.y+172.5f});
+        _in_b1.gui.init("inb1", {_module_box.x+15, _module_box.y+142.5f}, false);
+        _in_b2.gui.init("inb2", {_module_box.x+15, _module_box.y+202.5f}, false);
+        _out_b1.gui.init("outb1", {_module_box.x+52.5f, _module_box.y+172.5f}, true);
     }
 
     void process() {
@@ -726,8 +754,8 @@ public:
     void init(float sample_rate, float tempo) {
 
         _module_box = {30, 307.5f, 562.5f, 97.5f};
-        _cv.gui.init("CV Out", {_module_box.x + 82.5f, _module_box.y + 52.5f});
-        _trig.gui.init("Gate Out", {_module_box.x + 82.5f, _module_box.y + 15});
+        _cv.gui.init("CV Out", {_module_box.x + 82.5f, _module_box.y + 52.5f}, true);
+        _trig.gui.init("Gate Out", {_module_box.x + 82.5f, _module_box.y + 15}, true);
         _tempo = tempo;
 
         _metronome.Init(_tempo/60.0f*_num_steps, sample_rate); //multiplying by _num_steps should make it pulse once per step
@@ -819,9 +847,9 @@ public:
 
         _module_box = {600, 45, 90, 360};
 
-        _in_1.gui.init("Audio 1", {_module_box.x+7.5f, _module_box.y+22.5f});
+        _in_1.gui.init("Audio 1", {_module_box.x+7.5f, _module_box.y+22.5f}, false);
 
-        _in_2.gui.init("Audio 2", {_module_box.x+7.5f, _module_box.y+112.5f});
+        _in_2.gui.init("Audio 2", {_module_box.x+7.5f, _module_box.y+112.5f}, false);
 
         float radius = 22.5;
         _gain_1_knob = new knob({_module_box.x+37.5f+radius, _module_box.y+45+radius}, radius, &_gain_1, 0.0, 1.0);
