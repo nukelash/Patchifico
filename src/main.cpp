@@ -53,6 +53,7 @@ void callback(ma_device* pDevice, void* pOutput, const void* pInput, ma_uint32 f
 }
 
 void gui_loop() {
+    SetConfigFlags(FLAG_MSAA_4X_HINT);
     InitWindow(720, 420, "Virtual Modular Synth");
     SetTargetFPS(60);
 
