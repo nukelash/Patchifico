@@ -257,6 +257,9 @@ typedef struct Rectangle {
     float y;                // Rectangle top-left corner position y
     float width;            // Rectangle width
     float height;           // Rectangle height
+    Rectangle operator * (float scale) {
+        return (Rectangle){x*scale, y*scale, width*scale, height*scale};
+    }
 } Rectangle;
 
 // Image, pixel data stored in CPU memory (RAM)

@@ -48,14 +48,14 @@ void callback(ma_device* pDevice, void* pOutput, const void* pInput, ma_uint32 f
         out[i] = my_mixer.process();
 
     }
-    
-
 }
 
 void gui_loop() {
     SetConfigFlags(FLAG_MSAA_4X_HINT);
+    SetConfigFlags(FLAG_WINDOW_RESIZABLE);
     InitWindow(720, 420, "Virtual Modular Synth");
     SetTargetFPS(60);
+    Font title_font = LoadFont("/Users/lukenash/Downloads/pacifico-beer.otf/pacifico-beer.otf");
 
     bool showMessageBox = false;
     float value;
@@ -68,8 +68,16 @@ void gui_loop() {
         // Draw
         //----------------------------------------------------------------------------------
 
+        if(IsWindowResized()){
+            float ratio = 720.0f / 420.0f;
+            SetWindowSize(GetScreenWidth(), GetScreenWidth() / ratio);
+            BASE_UNIT = GetScreenWidth() / 720.0f;
+        }
+
         BeginDrawing();
             ClearBackground(GetColor(GuiGetStyle(DEFAULT, BACKGROUND_COLOR)));
+            DrawRectangleRounded((Rectangle{10, 10, 700, 400})*BASE_UNIT, 0.05, 8,  PACIFICO_BROWN);
+            DrawTextEx(title_font, "Patchifico", (Vector2{20, 20})*BASE_UNIT, 24*BASE_UNIT, 1, BLACK);
 
             my_osc.draw();
             my_lfo.draw();
@@ -80,7 +88,6 @@ void gui_loop() {
             my_mult.draw();
             my_sequencer.draw();
             my_patch_bay.draw();
-
         EndDrawing();
     }
 
@@ -135,9 +142,6 @@ int main() {
 
     my_patch_bay.add("my_mixer_in_1", &my_mixer._in_1);
     my_patch_bay.add("my_mixer_in_2", &my_mixer._in_2);
-
-    //my_patch_bay.connect("my_osc_out", "my_filt_in");
-    //my_patch_bay.connect("my_filt_out", "my_mixer_in");
 
     ma_interface* ma = new ma_interface(&user_data, callback);
     ma->start();

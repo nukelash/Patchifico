@@ -16,9 +16,8 @@ Color accent2 = {134, 165, 156, 255};
 Color accent3 = {125, 91, 166, 255};
 Color accent4 = {137, 206, 148, 255};
 
-Color patch_colors[4] = {accent1, accent2, accent3, accent4};
-
-
+#define NUM_PATCH_COLORS 3
+Color patch_colors[NUM_PATCH_COLORS] = {PACIFICO_GREEN, PACIFICO_BLUE, PACIFICO_RED};
 
 class patch_point_gui {
 public:
@@ -27,26 +26,18 @@ public:
 
     void init(std::string label, Vector2 position, bool is_source) {
 
-        // float width = 40;
-        // float height = 100;
-
-        // float x = position.x + (0.5*width);
-        // float y = position.y + (0.7*height);
         _radius = 15;
         _circle_position = {position.x+_radius, position.y+_radius};
-        
-
-        // y = position.y + (0.3*height);
         _label_position = {position.x, position.y-10};
         _label = label; 
+        _color = (is_source ? PACIFICO_BROWN : BLACK);
 
-        _color = (is_source ? RED : BLUE);
     }
 
     void draw() {
-        DrawCircleV(_circle_position, _radius, _color);
-        DrawCircleV(_circle_position, _radius-3, GetColor(GuiGetStyle(DEFAULT, BACKGROUND_COLOR)));
-        DrawText(_label.c_str(), _label_position.x, _label_position.y, 11, BLACK);
+        DrawCircleV(_circle_position*BASE_UNIT, _radius*BASE_UNIT, _color);
+        DrawCircleV(_circle_position*BASE_UNIT, (_radius-3)*BASE_UNIT, GetColor(GuiGetStyle(DEFAULT, BACKGROUND_COLOR)));
+        DrawText(_label.c_str(), _label_position.x*BASE_UNIT, _label_position.y*BASE_UNIT, 11*BASE_UNIT, BLACK);
     }
 
     std::string _label;
@@ -98,16 +89,15 @@ public:
         Color _color;
 
         void draw() {
-            DrawCircleV(_src_coordinates, 10, _color);
-            DrawCircleV(_dest_coordinates, 10, _color);
+            DrawCircleV(_src_coordinates*BASE_UNIT, 10*BASE_UNIT, _color);
+            DrawCircleV(_dest_coordinates*BASE_UNIT, 10*BASE_UNIT, _color);
 
             float max_x = fmax(_dest_coordinates.x,_src_coordinates.x);
             float min_x = fmin(_dest_coordinates.x, _src_coordinates.x);
             Vector2 midpoint = {((max_x-min_x)/2.0f)+min_x, fmax(_src_coordinates.y, _dest_coordinates.y)+20};
 
-            Vector2 points[5]  = {_src_coordinates, _src_coordinates, midpoint, _dest_coordinates,  _dest_coordinates};
+            Vector2 points[5]  = {_src_coordinates*BASE_UNIT, _src_coordinates*BASE_UNIT, midpoint*BASE_UNIT, _dest_coordinates*BASE_UNIT,  _dest_coordinates*BASE_UNIT};
             DrawSplineCatmullRom(points, 5, 5, _color);
-            //DrawLineEx(_src_coordinates, _dest_coordinates, 4, RED);
         }
     };
 
@@ -120,6 +110,9 @@ public:
     }
     
     void draw() {
+        for(auto i : _new_patch_cables) {
+            i->draw();
+        }
         //TODO: Connecting and unconnecting a lot leads to segfault occasionally?
         Vector2 mouse_location = GetMousePosition();
         std::string name;
@@ -166,7 +159,7 @@ public:
                         _in_progress_cable._dest_name = name;
                         _in_progress_cable._dest_coordinates = patch_coords;
                     }
-                    _in_progress_cable._color = patch_colors[rand() % 4];
+                    _in_progress_cable._color = patch_colors[rand() % NUM_PATCH_COLORS];
                 }
             }
         }
@@ -174,11 +167,12 @@ public:
         if(_connection_in_progress) {
             std::string in_progress_patch_name;
             if(_in_progress_cable._src_name == "mouse") {
-                _in_progress_cable._src_coordinates = mouse_location;
+                // Since patch cables multiply their coordinates by BASE_UNIT when drawing, we divide the mouse coordinates by BASE_UNIT here to draw the true mouse location
+                _in_progress_cable._src_coordinates = mouse_location/BASE_UNIT;
                 in_progress_patch_name = _in_progress_cable._dest_name;
             }
             else if(_in_progress_cable._dest_name == "mouse") {
-                _in_progress_cable._dest_coordinates = mouse_location;
+                _in_progress_cable._dest_coordinates = mouse_location/BASE_UNIT;
                 in_progress_patch_name = _in_progress_cable._src_name;
             }
             _in_progress_cable.draw();
@@ -193,10 +187,6 @@ public:
 
                 _connection_in_progress = false;
             }
-        }
-
-        for(auto i : _new_patch_cables) {
-            i->draw();
         }
     }
 
@@ -238,7 +228,8 @@ private:
     bool point_colliding_patch_source(Vector2 point, std::string* name) {
         for(auto i : _sources) {
             auto idx = i.first;
-            if (CheckCollisionPointCircle(point, _sources[idx]->gui._circle_position, _sources[idx]->gui._radius)) {
+            if (CheckCollisionPointCircle(point, (_sources[idx]->gui._circle_position)*BASE_UNIT, 
+            (_sources[idx]->gui._radius))*BASE_UNIT) {
                 *name = idx;
                 return true;
             }
@@ -249,7 +240,7 @@ private:
     bool point_colliding_patch_destination(Vector2 point, std::string* name) {
         for(auto i : _destinations) {
             auto idx = i.first;
-            if (CheckCollisionPointCircle(point, _destinations[idx]->gui._circle_position, _destinations[idx]->gui._radius)) {
+            if (CheckCollisionPointCircle(point, (_destinations[idx]->gui._circle_position)*BASE_UNIT, (_destinations[idx]->gui._radius)*BASE_UNIT)) {
                 *name = idx;
                 return true;
             }
@@ -260,7 +251,7 @@ private:
     bool point_colliding_patch_point(Vector2 point, std::string* name, Vector2* patch_coordinates) {
         for(auto i : _sources) {
             auto idx = i.first;
-            if (CheckCollisionPointCircle(point, _sources[idx]->gui._circle_position, _sources[idx]->gui._radius)) {
+            if (CheckCollisionPointCircle(point, (_sources[idx]->gui._circle_position)*BASE_UNIT, (_sources[idx]->gui._radius)*BASE_UNIT)) {
                 *name = idx;
                 *patch_coordinates = _sources[idx]->gui._circle_position;
                 return true;
@@ -268,7 +259,7 @@ private:
         }
         for(auto i : _destinations) {
             auto idx = i.first;
-            if (CheckCollisionPointCircle(point, _destinations[idx]->gui._circle_position, _destinations[idx]->gui._radius)) {
+            if (CheckCollisionPointCircle(point, (_destinations[idx]->gui._circle_position)*BASE_UNIT, (_destinations[idx]->gui._radius)*BASE_UNIT)) {
                 *name = idx;
                 *patch_coordinates = _destinations[idx]->gui._circle_position;
                 return true;
@@ -279,7 +270,6 @@ private:
 
     bool patch_point_occupied(std::string name, patch_cable** cable, bool* is_source) {
         for (auto c : _new_patch_cables) {
-            //auto k = i.first;
             if (c->_src_name == name) {
                 *cable = c;
                 *is_source = true;
@@ -308,11 +298,6 @@ private:
                 *source_name = name2;
                 source_hits++;
             }
-            // if (CheckCollisionPointCircle(point, _sources[idx]->gui._circle_position, _sources[idx]->gui._radius)) {
-            //     *name = idx;
-            //     *patch_coordinates = _sources[idx]->gui._circle_position;
-            //     return true;
-            // }
         }
         for(auto dest : _destinations) {
             std::string dest_name = dest.first;
@@ -335,8 +320,6 @@ private:
 
     std::unordered_map<std::string, patch_source*> _sources;
     std::unordered_map<std::string, patch_destination*> _destinations;
-
-    //std::unordered_map<std::string, patch_cable*> _patch_cables;
 
     std::vector<patch_cable*> _new_patch_cables;
     patch_cable _in_progress_cable;
@@ -375,6 +358,8 @@ public:
 
         float freq_radius = 30;
         _frequency_knob = new knob({_module_box.x + freq_radius + 22.5f, _module_box.y + freq_radius + 22.5f},freq_radius, &_audio_frequency, 20, 500);
+
+        _group_box = new group(_module_box, "Oscillator");
     }
 
     void draw() {
@@ -384,7 +369,7 @@ public:
 
         int x_pad = 5;
         float x_index = _module_box.x + x_pad;
-        GuiGroupBox(_module_box, "VCO");
+        _group_box->draw();
 
         _frequency_knob->draw();
         y_index += 160;
@@ -438,6 +423,7 @@ private:
     Rectangle _module_box;
 
     knob* _frequency_knob;
+    group* _group_box;
 };
 
 class lfo {
@@ -468,11 +454,13 @@ public:
 
         float radius = 22.5f;
         _frequency_knob  = new knob({_module_box.x+67.5f+radius, _module_box.y+7.5f+radius}, radius, &_lfo_frequency, 0.01, 50);
+
+        _group_box = new group(_module_box, "LFO");
     }
 
     void draw() {
 
-        GuiGroupBox(_module_box, "LFO");
+        _group_box->draw();
 
         _frequency_knob->draw();
 
@@ -522,6 +510,7 @@ private:
     Rectangle _module_box;
 
     knob* _frequency_knob;
+    group* _group_box;
 
     float _last_retrig_value = 0.0f;
 };
@@ -550,11 +539,13 @@ public:
 
         _resonance_knob = new knob({_module_box.x+105+radius, _module_box.y+22.5f+radius}, radius, &_resonance, 0.0, 1.5f);
 
+        _group_box = new group(_module_box, "Filter");
+
     }
 
     float process() {
 
-        _filter.SetFreq(_frequency+(25.0f*_cutoff_mod.val()));
+        _filter.SetFreq(_frequency+(5000.0f*_cutoff_mod.val()));
         _filter.SetRes(_resonance);
 
         _filter.Process(_in.val());
@@ -569,8 +560,8 @@ public:
 
         int x_pad = 5;
         float x_index = _module_box.x + x_pad;
-        GuiGroupBox(_module_box, "VCF");
 
+        _group_box->draw();
         _in.gui.draw();
         _out.gui.draw();
         _cutoff_mod.gui.draw();
@@ -593,6 +584,7 @@ private:
 
     knob* _cutoff_knob;
     knob* _resonance_knob;
+    group* _group_box;
 };
 
 class envelope_generator {
@@ -615,6 +607,8 @@ public:
         float radius = 22.5f;
         _attack_knob = new knob({_module_box.x+60+radius, _module_box.y+7.5f+radius}, radius, &_attack, 0.01, 1.0);
         _decay_knob = new knob({_module_box.x+60+radius, _module_box.y+60+radius}, radius, &_decay, 0.01, 2.0);
+
+        _group_box = new group(_module_box, "Envelope");
     }
 
     void process() {
@@ -636,7 +630,7 @@ public:
 
         int x_pad = 5;
         float x_index = _module_box.x + x_pad;
-        GuiGroupBox(_module_box, "Envelope");
+        _group_box->draw();
 
         if (GuiButton((Rectangle){_module_box.x+15, _module_box.y+15, 30, 30}, "Trigger")) {
             _env.Trigger();
@@ -662,6 +656,7 @@ private:
 
     knob* _attack_knob;
     knob* _decay_knob;
+    group* _group_box;
 };
 
 class mult {
@@ -676,12 +671,13 @@ public:
         _out1.gui.init("out", {_module_box.x+60, _module_box.y+15}, true);
         _out2.gui.init("out", {_module_box.x+15, _module_box.y+67.5f}, true);
         _out3.gui.init("out", {_module_box.x+60, _module_box.y+67.5f}, true);
+
+        _group_box = new group(_module_box, "Mult");
     }
 
     void draw() {
 
-        GuiGroupBox(_module_box, "Mult");
-
+        _group_box->draw();
         _in.gui.draw();
         _out1.gui.draw();
         _out2.gui.draw();
@@ -701,6 +697,7 @@ public:
 
 private:
     Rectangle _module_box;
+    group* _group_box;
 };
 
 class vca {
@@ -717,6 +714,8 @@ public:
         _in_b1.gui.init("inb1", {_module_box.x+15, _module_box.y+142.5f}, false);
         _in_b2.gui.init("inb2", {_module_box.x+15, _module_box.y+202.5f}, false);
         _out_b1.gui.init("outb1", {_module_box.x+52.5f, _module_box.y+172.5f}, true);
+
+        _group_box = new group(_module_box, "VCA");
     }
 
     void process() {
@@ -725,7 +724,7 @@ public:
     }
 
     void draw() {
-        GuiGroupBox(_module_box, "VCA");
+        _group_box->draw();
         _in_a1.gui.draw();
         _in_a2.gui.draw();
         _out_a1.gui.draw();
@@ -744,6 +743,7 @@ public:
 
 private:
     Rectangle _module_box;
+    group* _group_box;
 };
 
 class sequencer {
@@ -769,6 +769,8 @@ public:
         for (int i = 0; i < _num_steps; i++) {
             _step_knobs[i] = new knob({_module_box.x+146.25f+radius+(i*(radius+radius+gap)), _module_box.y+52.5f+radius}, radius, &_cv_pattern[i], -1.0f, 1.0f);
         }
+
+        _group_box = new group(_module_box, "Sequencer");
     }
 
     void process() {
@@ -790,7 +792,7 @@ public:
     }
 
     void draw() {
-        GuiGroupBox(_module_box, "Sequencer");
+        _group_box->draw();
 
         for(int i = 0; i < _num_steps; i++) {
             Rectangle bounds = {_module_box.x+150+(i*52.5f), _module_box.y + 7.5f, 30, 30};
@@ -834,6 +836,7 @@ private:
 
     knob* _tempo_knob;
     knob* _step_knobs[_num_steps];
+    group* _group_box;
 };
 
 class mixer {
@@ -854,6 +857,8 @@ public:
         float radius = 22.5;
         _gain_1_knob = new knob({_module_box.x+37.5f+radius, _module_box.y+45+radius}, radius, &_gain_1, 0.0, 1.0);
         _gain_2_knob = new knob({_module_box.x+37.5f+radius, _module_box.y+135+radius}, radius, &_gain_2, 0.0, 1.0);
+
+        _group_box = new group(_module_box, "Mixer");
     }
 
     float process() {
@@ -867,7 +872,8 @@ public:
 
         int x_pad = 5;
         float x_index = _module_box.x + x_pad;
-        GuiGroupBox(_module_box, "Mixer");
+        //GuiGroupBox(_module_box, "Mixer");
+        _group_box->draw();
 
         _in_1.gui.draw();
         _in_2.gui.draw();
@@ -886,4 +892,6 @@ private:
 
     knob* _gain_1_knob;
     knob* _gain_2_knob;
+
+    group* _group_box;
 };
