@@ -611,6 +611,8 @@ public:
         _group_box = new group(_module_box, "Envelope");
 
         _trig_button = new push_button({_module_box.x+15, _module_box.y+15}, &_trig_button_was_pushed);
+
+        _light = new light({_module_box.x+112.5f, _module_box.y+30.0f}, 5, PACIFICO_RED);
     }
 
     void process() {
@@ -627,6 +629,7 @@ public:
 
     void draw() {
 
+        _light->set_brightness(_output.value);
         int y_pad = 30;
         float y_index = _module_box.y + y_pad;
 
@@ -634,9 +637,6 @@ public:
         float x_index = _module_box.x + x_pad;
         _group_box->draw();
 
-        // if (GuiButton((Rectangle){_module_box.x+15, _module_box.y+15, 30, 30}, "Trigger")) {
-        //     _env.Trigger();
-        // }
         if (_trig_button_was_pushed){
             _env.Trigger();
         }
@@ -646,6 +646,7 @@ public:
         _attack_knob->draw();
         _decay_knob->draw();
         _trig_button->draw();
+        _light->draw();
     }
 
     patch_destination _trigger;
@@ -665,6 +666,7 @@ private:
     knob* _decay_knob;
     group* _group_box;
     push_button* _trig_button;
+    light* _light;
 };
 
 class mult {
@@ -775,11 +777,13 @@ public:
         radius = 18.75;
         float gap = 15;
         for (int i = 0; i < _num_steps; i++) {
-            _step_knobs[i] = new knob({_module_box.x+146.25f+radius+(i*(radius+radius+gap)), _module_box.y+52.5f+radius}, radius, &_cv_pattern[i], -1.0f, 1.0f);
+            _step_knobs[i] = new knob({_module_box.x+146.25f+radius+(i*(radius+radius+gap)), _module_box.y+57.5f+radius}, radius, &_cv_pattern[i], -1.0f, 1.0f);
             _step_switches[i] = new toggle_switch({_module_box.x+150+(i*52.5f), _module_box.y + 10.0f}, &_trig_pattern[i]);
+            _lights[i] = new light({_module_box.x+146.25f+radius+(i*(radius+radius+gap)), _module_box.y+50.0f}, 5, PACIFICO_RED);
         }
 
         _group_box = new group(_module_box, "Sequencer");
+
     }
 
     void process() {
@@ -793,10 +797,12 @@ public:
             
             _cv.value = _cv_pattern[_step];
 
+            _lights[_step]->set_brightness(0.2);
             _step++;
             if (_step == _num_steps) {
                 _step = 0;
             }
+            _lights[_step]->set_brightness(1.0);
         }
     }
 
@@ -821,6 +827,7 @@ public:
         for (int i= 0; i < _num_steps; i++){
             _step_knobs[i]->draw();
             _step_switches[i]->draw();
+            _lights[i]->draw();
         }
     }
 
@@ -849,6 +856,7 @@ private:
     knob* _step_knobs[_num_steps];
     group* _group_box;
     toggle_switch* _step_switches[_num_steps];
+    light*  _lights[_num_steps];
 };
 
 class mixer {

@@ -149,6 +149,7 @@ public:
         }
         else {
             _toggled = false;
+            *_parameter = false;
             if(counter < pushed_time_frames) {
                 counter++;
             }
@@ -206,5 +207,40 @@ private:
     Rectangle _border;
     Rectangle _label_rectangle;
     std::string _title;
+};
+
+class light {
+public:
+    light(Vector2 position, float radius, Color color) {
+        _position = position;
+        _radius = radius;
+        _color = color;
+        _brightness = 0.0f;
+    }
+    ~light() {}
+
+    void draw() {
+        DrawCircleV(_position*BASE_UNIT, _radius*BASE_UNIT, BLACK);
+        Color light = _color;
+        light.a *= _brightness;
+        DrawCircleV(_position*BASE_UNIT, _radius*BASE_UNIT, light);
+    }
+
+    void set_brightness(float brightness) {
+        if(brightness < 0.0f) {
+            _brightness = 0.0f;
+        } else if(brightness > 1.0f) {
+            _brightness = 1.0f;
+        } else {
+            _brightness = brightness;
+        }
+    }
+
+private:
+
+    Color _color;
+    float _radius;
+    Vector2 _position;
+    float _brightness;
 };
 
