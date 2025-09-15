@@ -98,6 +98,80 @@ private:
 
 };
 
+class toggle_switch{
+public:
+    toggle_switch(Vector2 position, bool* parameter) {
+        _position = position;
+        _parameter = parameter;
+    }
+    ~toggle_switch() {}
+
+    void draw() {
+        //Color filled = PACIFICO_GOLD;
+
+        if(IsMouseButtonPressed(MOUSE_BUTTON_LEFT) && CheckCollisionPointRec(GetMousePosition(), {_position.x*BASE_UNIT, _position.y*BASE_UNIT, _side_length*BASE_UNIT, _side_length*BASE_UNIT})) {
+            _toggled = !_toggled;
+            *_parameter = _toggled;
+        }
+
+        DrawRectangleRoundedLinesEx((Rectangle){_position.x*BASE_UNIT, _position.y*BASE_UNIT, (_side_length)*BASE_UNIT, (_side_length)*BASE_UNIT}, 0.2, 8, 2*BASE_UNIT, PACIFICO_BROWN);
+
+        if (_toggled) {
+            DrawRectangleRounded((Rectangle){_position.x*BASE_UNIT, _position.y*BASE_UNIT, _side_length*BASE_UNIT, _side_length*BASE_UNIT}, 0.2, 8, PACIFICO_BROWN);
+        }
+        
+    }
+private:
+    Vector2 _position;
+    float _side_length = 30;
+
+    bool _toggled = 0;
+    bool* _parameter;
+};
+
+class push_button{
+public:
+    push_button(Vector2 position, bool* parameter) {
+        _position = position;
+        _parameter = parameter;
+    }
+    ~push_button() {}
+
+    void draw() {
+
+        if(IsMouseButtonPressed(MOUSE_BUTTON_LEFT) && CheckCollisionPointRec(GetMousePosition(), {_position.x*BASE_UNIT, _position.y*BASE_UNIT, _side_length*BASE_UNIT, _side_length*BASE_UNIT})) {
+            if(!_toggled) {
+                *_parameter = true;
+            }
+            _toggled = true;
+            counter = 0;
+
+        }
+        else {
+            _toggled = false;
+            if(counter < pushed_time_frames) {
+                counter++;
+            }
+        }
+
+        DrawRectangleRoundedLinesEx((Rectangle){_position.x*BASE_UNIT, _position.y*BASE_UNIT, (_side_length)*BASE_UNIT, (_side_length)*BASE_UNIT}, 0.2, 8, 2*BASE_UNIT, PACIFICO_BROWN);
+
+        if (counter < pushed_time_frames) {
+            DrawRectangleRounded((Rectangle){_position.x*BASE_UNIT, _position.y*BASE_UNIT, _side_length*BASE_UNIT, _side_length*BASE_UNIT}, 0.2, 8, PACIFICO_BROWN);
+        }
+        
+    }
+private:
+    Vector2 _position;
+    float _side_length = 30;
+
+    bool _toggled = 0;
+    bool* _parameter;
+
+    int pushed_time_frames = 7;
+    int counter = 7;
+};
+
 class group {
 public:
     group(Rectangle border, std::string title) {
@@ -133,3 +207,4 @@ private:
     Rectangle _label_rectangle;
     std::string _title;
 };
+

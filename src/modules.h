@@ -344,7 +344,7 @@ public:
         _audio_saw.SetWaveform(daisysp::Oscillator::WAVE_SAW);
         _audio_sqr.SetWaveform(daisysp::Oscillator::WAVE_SQUARE);
 
-        _module_box.x = 30;
+        _module_box.x = 10;
         _module_box.y = 45;
         _module_box.width = 255;
         _module_box.height = 135;
@@ -434,7 +434,7 @@ public:
     void init(float sample_rate, patch_manager* patch_bay) {
         _patch_bay = patch_bay;
 
-        _module_box = {30, 187.5, 180, 112.5};
+        _module_box = {10, 187.5, 180, 112.5};
 
         _lfo_frequency = 0.5;
         for (auto i : _lfo_oscillators) {
@@ -528,7 +528,7 @@ public:
         _resonance = 0.5;
         _filter.SetFreq(_frequency);
 
-        _module_box = {292.5f, 45, 195, 135};
+        _module_box = {272.5f, 45, 195, 135};
 
         _in.gui.init("input", {_module_box.x+22.5f, _module_box.y+82.5f}, false);
         _out.gui.init("output", {_module_box.x+142.5f, _module_box.y+82.5f}, true);
@@ -595,7 +595,7 @@ public:
     void init(float sample_rate) {
         _env.Init(sample_rate);
 
-        _module_box = {330,187.5, 157.5, 112.5};
+        _module_box = {310,187.5, 157.5, 112.5};
 
         _attack = 0.1;
         _decay = 0.5;
@@ -609,6 +609,8 @@ public:
         _decay_knob = new knob({_module_box.x+60+radius, _module_box.y+60+radius}, radius, &_decay, 0.01, 2.0);
 
         _group_box = new group(_module_box, "Envelope");
+
+        _trig_button = new push_button({_module_box.x+15, _module_box.y+15}, &_trig_button_was_pushed);
     }
 
     void process() {
@@ -632,7 +634,10 @@ public:
         float x_index = _module_box.x + x_pad;
         _group_box->draw();
 
-        if (GuiButton((Rectangle){_module_box.x+15, _module_box.y+15, 30, 30}, "Trigger")) {
+        // if (GuiButton((Rectangle){_module_box.x+15, _module_box.y+15, 30, 30}, "Trigger")) {
+        //     _env.Trigger();
+        // }
+        if (_trig_button_was_pushed){
             _env.Trigger();
         }
 
@@ -640,6 +645,7 @@ public:
         _output.gui.draw();
         _attack_knob->draw();
         _decay_knob->draw();
+        _trig_button->draw();
     }
 
     patch_destination _trigger;
@@ -651,12 +657,14 @@ private:
     float _decay;
 
     float _last_trig_value;
+    bool _trig_button_was_pushed;
 
     Rectangle _module_box;
 
     knob* _attack_knob;
     knob* _decay_knob;
     group* _group_box;
+    push_button* _trig_button;
 };
 
 class mult {
@@ -665,7 +673,7 @@ public:
     ~mult(){}
 
     void init() {
-        _module_box = {217.5, 187.5, 105, 112.5};
+        _module_box = {197.5, 187.5, 105, 112.5};
 
         _in.gui.init("in", {_module_box.x+15, _module_box.y+15}, false);
         _out1.gui.init("out", {_module_box.x+60, _module_box.y+15}, true);
@@ -706,7 +714,7 @@ public:
     ~vca() {}
 
     void init() {
-        _module_box = {495, 45, 97.5f, 255};
+        _module_box = {475, 45, 97.5f, 255};
         _in_a1.gui.init("ina1", {_module_box.x+15, _module_box.y+22.5f}, false);
         _in_a2.gui.init("ina2", {_module_box.x+15, _module_box.y+82.5f}, false);
         _out_a1.gui.init("outa1", {_module_box.x+52.5f, _module_box.y+52.5f}, true);
@@ -753,7 +761,7 @@ public:
 
     void init(float sample_rate, float tempo) {
 
-        _module_box = {30, 307.5f, 562.5f, 97.5f};
+        _module_box = {10, 307.5f, 562.5f, 97.5f};
         _cv.gui.init("CV Out", {_module_box.x + 82.5f, _module_box.y + 52.5f}, true);
         _trig.gui.init("Gate Out", {_module_box.x + 82.5f, _module_box.y + 15}, true);
         _tempo = tempo;
@@ -768,6 +776,7 @@ public:
         float gap = 15;
         for (int i = 0; i < _num_steps; i++) {
             _step_knobs[i] = new knob({_module_box.x+146.25f+radius+(i*(radius+radius+gap)), _module_box.y+52.5f+radius}, radius, &_cv_pattern[i], -1.0f, 1.0f);
+            _step_switches[i] = new toggle_switch({_module_box.x+150+(i*52.5f), _module_box.y + 10.0f}, &_trig_pattern[i]);
         }
 
         _group_box = new group(_module_box, "Sequencer");
@@ -795,10 +804,11 @@ public:
         _group_box->draw();
 
         for(int i = 0; i < _num_steps; i++) {
-            Rectangle bounds = {_module_box.x+150+(i*52.5f), _module_box.y + 7.5f, 30, 30};
-            GuiCheckBox(bounds, "", &_trig_pattern[i]);
-            bounds.y += 30;
-            bounds.width = 40;
+            // Rectangle bounds = {_module_box.x+150+(i*52.5f), _module_box.y + 7.5f, 30, 30};
+            // GuiCheckBox(bounds, "", &_trig_pattern[i]);
+            // bounds.y += 30;
+            // bounds.width = 40;
+            
         }
 
         if(_trig.value) {
@@ -810,6 +820,7 @@ public:
         _tempo_knob->draw();
         for (int i= 0; i < _num_steps; i++){
             _step_knobs[i]->draw();
+            _step_switches[i]->draw();
         }
     }
 
@@ -837,6 +848,7 @@ private:
     knob* _tempo_knob;
     knob* _step_knobs[_num_steps];
     group* _group_box;
+    toggle_switch* _step_switches[_num_steps];
 };
 
 class mixer {
@@ -848,7 +860,7 @@ public:
         _gain_1= 0.5;
         _gain_2 = 0.5;
 
-        _module_box = {600, 45, 90, 360};
+        _module_box = {580, 45, 90, 360};
 
         _in_1.gui.init("Audio 1", {_module_box.x+7.5f, _module_box.y+22.5f}, false);
 

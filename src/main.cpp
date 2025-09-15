@@ -53,7 +53,7 @@ void callback(ma_device* pDevice, void* pOutput, const void* pInput, ma_uint32 f
 void gui_loop() {
     SetConfigFlags(FLAG_MSAA_4X_HINT);
     SetConfigFlags(FLAG_WINDOW_RESIZABLE);
-    InitWindow(720, 420, "Virtual Modular Synth");
+    InitWindow(680, 415, "Virtual Modular Synth");
     SetTargetFPS(60);
     Font title_font = LoadFont("/Users/lukenash/Downloads/pacifico-beer.otf/pacifico-beer.otf");
 
@@ -69,14 +69,14 @@ void gui_loop() {
         //----------------------------------------------------------------------------------
 
         if(IsWindowResized()){
-            float ratio = 720.0f / 420.0f;
+            float ratio = 680.0f / 415.0f;
             SetWindowSize(GetScreenWidth(), GetScreenWidth() / ratio);
-            BASE_UNIT = GetScreenWidth() / 720.0f;
+            BASE_UNIT = GetScreenWidth() / 680.0f;
         }
 
         BeginDrawing();
-            ClearBackground(GetColor(GuiGetStyle(DEFAULT, BACKGROUND_COLOR)));
-            DrawRectangleRounded((Rectangle{10, 10, 700, 400})*BASE_UNIT, 0.05, 8,  PACIFICO_BROWN);
+            ClearBackground(PACIFICO_BROWN);
+            //DrawRectangleRounded((Rectangle{10, 10, 700, 400})*BASE_UNIT, 0.05, 8,  PACIFICO_BROWN);
             DrawTextEx(title_font, "Patchifico", (Vector2{20, 20})*BASE_UNIT, 24*BASE_UNIT, 1, BLACK);
 
             my_osc.draw();
