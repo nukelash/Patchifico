@@ -103,7 +103,7 @@ int main() {
     my_envelope.init(48000);
     my_vca.init();
     my_mult.init();
-    my_sequencer.init(48000, 90);
+    my_sequencer.init(48000, 0.5);
     my_mixer.init();
 
     my_patch_bay.add("my_osc_tri", &my_osc._audio_tri_out);

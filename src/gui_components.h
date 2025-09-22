@@ -13,6 +13,22 @@
 
 float BASE_UNIT = 1.0f;
 
+class parameter_map {
+public:
+    parameter_map(float min, float mid, float max) {
+        _b = min;
+        _c = (2*mid - min - max)/(max - mid);
+        _a = max - min + (_c*max);
+    }
+
+    float process(float input) {
+        return (_a*input + _b) / (_c*input + 1);
+    }
+
+private:
+    float _a, _b, _c;
+};
+
 class knob {
 public:
     knob(Vector2 position, int radius, float* parameter, float min_val, float max_val) {
@@ -177,8 +193,12 @@ class group {
 public:
     group(Rectangle border, std::string title) {
         _border = border;
-        float label_pos_x = (border.width/2.0f) - (((title.length()*10)+8)/2.0f);
-        _label_rectangle = {_border.x+label_pos_x, _border.y-5, title.length()*10.0f+4.0f, 10};
+        int title_width = title.size() * 10;//MeasureText("title.c_str()", 10);
+        std::cout << title_width << std::endl;
+        std::cout << title.size() << std::endl;
+        float label_width = title_width + 10;
+        float label_pos_x = (border.width/2.0f) - (label_width/2.0f);
+        _label_rectangle = {_border.x+label_pos_x, _border.y-5, label_width, 10};
         // _vertices[0] = {border.x, border.y};
         // _vertices[1] = {border.x+border.width, border.y};
         // _vertices[2] = {border.x+border.width, border.y+border.height};
@@ -191,7 +211,9 @@ public:
         
         DrawRectangleRounded(_border*BASE_UNIT, 0.3, 8, PACIFICO_GOLD);
         DrawRectangleRoundedLinesEx(_border*BASE_UNIT, 0.3, 8, 1.5, BLACK);
-        DrawRectangleRec(_label_rectangle*BASE_UNIT, BLACK);
+        DrawRectangleRounded(_label_rectangle*BASE_UNIT, 0.3, 8, WHITE);
+        DrawRectangleRoundedLinesEx(_label_rectangle*BASE_UNIT, 0.3, 8, 1.5, BLACK);
+        DrawText(_title.c_str(), (_label_rectangle.x + (_title.size()*2))*BASE_UNIT, _label_rectangle.y*BASE_UNIT, 12, BLACK);
         
         // for(int i = 0; i < 4; i++) {
         //     int next = (i+1) % 4;
@@ -242,5 +264,51 @@ private:
     float _radius;
     Vector2 _position;
     float _brightness;
+};
+
+class volume_meter {
+public:
+    volume_meter(Rectangle rectangle) {
+        for (int i = 0;  i < _num_lights; i++) {
+            float width = rectangle.width;
+            float height = (rectangle.height / _num_lights) - _buffer;
+            float x = rectangle.x;
+            float y = rectangle.y + i * (height + _buffer);
+            _lights[i] = {x, y, width, height};
+
+            _map = new parameter_map(0, 11.8, 12);
+        }
+    }
+    ~volume_meter() {}
+
+    void process(float sample) {
+        _average = (_f*_average) + ((1-_f)*abs(sample));
+    }
+
+    void draw() {
+        Color c;
+        int num_illuminated_lights = _map->process(_average);//_average * _num_lights;
+        for (int i = _num_lights-1; i >= 0; i--) {
+            c = PACIFICO_BLUE;
+            if (i < 6) c = PACIFICO_GREEN;
+            if (i < 3) c = PACIFICO_RED;
+
+            if (i < (_num_lights - num_illuminated_lights)) {
+                c.a *= 0.2;
+            }
+            
+            DrawRectangleRounded(_lights[i]*BASE_UNIT, 0.5, 8, c);
+        }
+    }
+private:
+    static const int _num_lights = 12;
+    Rectangle _lights[_num_lights];
+    float _buffer = 5;
+
+    float _average;
+    float _f = 0.999;
+
+    parameter_map* _map;
+
 };
 

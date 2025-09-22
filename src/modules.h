@@ -357,9 +357,11 @@ public:
         _audio_sqr_out.gui.init("Sqr", {_module_box.x+142.5f, _module_box.y+82.5f}, true);
 
         float freq_radius = 30;
-        _frequency_knob = new knob({_module_box.x + freq_radius + 22.5f, _module_box.y + freq_radius + 22.5f},freq_radius, &_audio_frequency, 20, 500);
+        _frequency_knob = new knob({_module_box.x + freq_radius + 22.5f, _module_box.y + freq_radius + 22.5f},freq_radius, &_audio_frequency, 0.0, 1.0);
 
         _group_box = new group(_module_box, "Oscillator");
+
+        _map = new parameter_map(60, 260, 880);
     }
 
     void draw() {
@@ -387,7 +389,7 @@ public:
     float process() {
 
         for (auto i : _audio_oscillators) {
-            i->SetFreq(_audio_frequency + (100*_audio_frequency_mod.val()));
+            i->SetFreq(_map->process(_audio_frequency + (0.2*_audio_frequency_mod.val())));
             i->SetPw((_pulse_width.val()+1.0f)/2.0f);
         }
 
@@ -424,6 +426,8 @@ private:
 
     knob* _frequency_knob;
     group* _group_box;
+
+    parameter_map* _map;
 };
 
 class lfo {
@@ -435,11 +439,12 @@ public:
         _patch_bay = patch_bay;
 
         _module_box = {10, 187.5, 180, 112.5};
+        _map = new parameter_map(0.01, 10, 60);
 
         _lfo_frequency = 0.5;
         for (auto i : _lfo_oscillators) {
             i->Init(sample_rate);
-            i->SetFreq(_lfo_frequency);
+            i->SetFreq(_map->process(_lfo_frequency));
         }
         _lfo_tri.SetWaveform(daisysp::Oscillator::WAVE_TRI);
         _lfo_saw.SetWaveform(daisysp::Oscillator::WAVE_SAW);
@@ -453,7 +458,7 @@ public:
         _retrig.gui.init("Reset", {_module_box.x+15, _module_box.y+15}, false);
 
         float radius = 22.5f;
-        _frequency_knob  = new knob({_module_box.x+67.5f+radius, _module_box.y+7.5f+radius}, radius, &_lfo_frequency, 0.01, 50);
+        _frequency_knob  = new knob({_module_box.x+67.5f+radius, _module_box.y+7.5f+radius}, radius, &_lfo_frequency, 0.0, 1.0f);
 
         _group_box = new group(_module_box, "LFO");
     }
@@ -474,7 +479,7 @@ public:
 
     float process() {
         for (auto i : _lfo_oscillators) {
-            i->SetFreq(_lfo_frequency);
+            i->SetFreq(_map->process(_lfo_frequency));
             i->SetPw((_pulse_width.val()+1.0f)/2.0f);
         }
 
@@ -511,6 +516,7 @@ private:
 
     knob* _frequency_knob;
     group* _group_box;
+    parameter_map* _map;
 
     float _last_retrig_value = 0.0f;
 };
@@ -535,17 +541,19 @@ public:
         _cutoff_mod.gui.init("cutoff", {_module_box.x+82.5f, _module_box.y+82.5f}, false);
 
         float radius = 22.5f;
-        _cutoff_knob = new knob({_module_box.x+45+radius, _module_box.y+22.5f+radius}, radius, &_frequency, 20, 15000);
+        _cutoff_knob = new knob({_module_box.x+45+radius, _module_box.y+22.5f+radius}, radius, &_frequency, 0.0, 1.0);
 
         _resonance_knob = new knob({_module_box.x+105+radius, _module_box.y+22.5f+radius}, radius, &_resonance, 0.0, 1.5f);
 
         _group_box = new group(_module_box, "Filter");
 
+        _map = new parameter_map(20, 2000, 15000);
+
     }
 
     float process() {
 
-        _filter.SetFreq(_frequency+(5000.0f*_cutoff_mod.val()));
+        _filter.SetFreq(_map->process(_frequency+(0.2*_cutoff_mod.val())));
         _filter.SetRes(_resonance);
 
         _filter.Process(_in.val());
@@ -585,6 +593,7 @@ private:
     knob* _cutoff_knob;
     knob* _resonance_knob;
     group* _group_box;
+    parameter_map* _map;
 };
 
 class envelope_generator {
@@ -605,20 +614,22 @@ public:
         _output.gui.init("env out", {_module_box.x+112.5f, _module_box.y+41.25f}, true);
 
         float radius = 22.5f;
-        _attack_knob = new knob({_module_box.x+60+radius, _module_box.y+7.5f+radius}, radius, &_attack, 0.01, 1.0);
-        _decay_knob = new knob({_module_box.x+60+radius, _module_box.y+60+radius}, radius, &_decay, 0.01, 2.0);
+        _attack_knob = new knob({_module_box.x+60+radius, _module_box.y+7.5f+radius}, radius, &_attack, 0.0, 1.0);
+        _decay_knob = new knob({_module_box.x+60+radius, _module_box.y+60+radius}, radius, &_decay, 0.0, 1.0);
 
         _group_box = new group(_module_box, "Envelope");
 
         _trig_button = new push_button({_module_box.x+15, _module_box.y+15}, &_trig_button_was_pushed);
 
         _light = new light({_module_box.x+112.5f, _module_box.y+30.0f}, 5, PACIFICO_RED);
+
+        _map = new parameter_map(0.01, 0.2, 1.5);
     }
 
     void process() {
 
-        _env.SetTime(daisysp::ADENV_SEG_ATTACK, _attack);
-        _env.SetTime(daisysp::ADENV_SEG_DECAY, _decay);
+        _env.SetTime(daisysp::ADENV_SEG_ATTACK, _map->process(_attack));
+        _env.SetTime(daisysp::ADENV_SEG_DECAY, _map->process(_decay));
 
         if(_trigger.val() > _last_trig_value) {
             _env.Trigger();
@@ -667,6 +678,8 @@ private:
     group* _group_box;
     push_button* _trig_button;
     light* _light;
+
+    parameter_map* _map;
 };
 
 class mult {
@@ -772,7 +785,7 @@ public:
         _step = 0;
 
         float radius = 22.5f;
-        _tempo_knob = new knob({_module_box.x+15+radius, _module_box.y+26.25f+radius},radius, &_tempo, 30, 160);
+        _tempo_knob = new knob({_module_box.x+15+radius, _module_box.y+26.25f+radius},radius, &_tempo, 0.0, 1.0);
 
         radius = 18.75;
         float gap = 15;
@@ -784,24 +797,29 @@ public:
 
         _group_box = new group(_module_box, "Sequencer");
 
+        _map = new parameter_map(10, 95, 400);
+
     }
 
     void process() {
 
-        _metronome.SetFreq(_tempo/60.0f*_num_steps);
+        _metronome.SetFreq(_map->process(_tempo)/60.0f*_num_steps);
 
         int new_step = _metronome.Process();
-        _trig.value = _trig_pattern[_step] * new_step;
+        
 
         if(new_step) {
-            
-            _cv.value = _cv_pattern[_step];
-
             _lights[_step]->set_brightness(0.2);
+            
             _step++;
             if (_step == _num_steps) {
                 _step = 0;
             }
+
+            _trig.value = _trig_pattern[_step];
+            _cv.value = _cv_pattern[_step];
+
+            
             _lights[_step]->set_brightness(1.0);
         }
     }
@@ -857,6 +875,7 @@ private:
     group* _group_box;
     toggle_switch* _step_switches[_num_steps];
     light*  _lights[_num_steps];
+    parameter_map* _map;
 };
 
 class mixer {
@@ -865,8 +884,8 @@ public:
     ~mixer() {}
 
     void init() {
-        _gain_1= 0.5;
-        _gain_2 = 0.5;
+        _gain_1= 0.2;
+        _gain_2 = 0.2;
 
         _module_box = {580, 45, 90, 360};
 
@@ -875,14 +894,17 @@ public:
         _in_2.gui.init("Audio 2", {_module_box.x+7.5f, _module_box.y+112.5f}, false);
 
         float radius = 22.5;
-        _gain_1_knob = new knob({_module_box.x+37.5f+radius, _module_box.y+45+radius}, radius, &_gain_1, 0.0, 1.0);
-        _gain_2_knob = new knob({_module_box.x+37.5f+radius, _module_box.y+135+radius}, radius, &_gain_2, 0.0, 1.0);
+        _gain_1_knob = new knob({_module_box.x+37.5f+radius, _module_box.y+45+radius}, radius, &_gain_1, 0.0, 0.5);
+        _gain_2_knob = new knob({_module_box.x+37.5f+radius, _module_box.y+135+radius}, radius, &_gain_2, 0.0, 0.5);
 
         _group_box = new group(_module_box, "Mixer");
+
+        _meter = new volume_meter({_module_box.x+20, _module_box.y+200, 50.0f, 140.0f});
     }
 
     float process() {
         float sample = (_in_1.val() * _gain_1) + (_in_2.val() * _gain_2);
+        _meter->process(sample);
         return sample;
     }
 
@@ -899,6 +921,7 @@ public:
         _in_2.gui.draw();
         _gain_1_knob->draw();
         _gain_2_knob->draw();
+        _meter->draw();
     }
 
     patch_destination _in_1;
@@ -914,4 +937,6 @@ private:
     knob* _gain_2_knob;
 
     group* _group_box;
+
+    volume_meter* _meter;
 };
