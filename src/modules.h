@@ -97,7 +97,7 @@ public:
             Vector2 midpoint = {((max_x-min_x)/2.0f)+min_x, fmax(_src_coordinates.y, _dest_coordinates.y)+20};
 
             Vector2 points[5]  = {_src_coordinates*BASE_UNIT, _src_coordinates*BASE_UNIT, midpoint*BASE_UNIT, _dest_coordinates*BASE_UNIT,  _dest_coordinates*BASE_UNIT};
-            DrawSplineCatmullRom(points, 5, 5, _color);
+            DrawSplineCatmullRom(points, 5, 5*BASE_UNIT, _color);
         }
     };
 
@@ -345,16 +345,16 @@ public:
         _audio_sqr.SetWaveform(daisysp::Oscillator::WAVE_SQUARE);
 
         _module_box.x = 10;
-        _module_box.y = 45;
+        _module_box.y = 85;
         _module_box.width = 255;
         _module_box.height = 135;
 
-        _audio_frequency_mod.gui.init("Freq Mod", {_module_box.x+82.5f, _module_box.y+82.5f}, false);
-        _pulse_width.gui.init("PW", {_module_box.x+142.5f, _module_box.y+22.5f}, false);
+        _audio_frequency_mod.gui.init("Freq Mod", {_module_box.x+142.5f, _module_box.y+22.5f}, false);
+        _pulse_width.gui.init("PW", {_module_box.x+202.5f, _module_box.y+22.5f}, false);
 
-        _audio_tri_out.gui.init("Tri", {_module_box.x+202.5f, _module_box.y+22.5f}, true);
-        _audio_saw_out.gui.init("Saw", {_module_box.x+202.5f, _module_box.y+82.5f}, true);
-        _audio_sqr_out.gui.init("Sqr", {_module_box.x+142.5f, _module_box.y+82.5f}, true);
+        _audio_tri_out.gui.init("", {_module_box.x+82.5f, _module_box.y+82.5f}, true);
+        _audio_saw_out.gui.init("", {_module_box.x+142.5f, _module_box.y+82.5f}, true);
+        _audio_sqr_out.gui.init("", {_module_box.x+202.5f, _module_box.y+82.5f}, true);
 
         float freq_radius = 30;
         _frequency_knob = new knob({_module_box.x + freq_radius + 22.5f, _module_box.y + freq_radius + 22.5f},freq_radius, &_audio_frequency, 0.0, 1.0);
@@ -362,6 +362,10 @@ public:
         _group_box = new group(_module_box, "Oscillator");
 
         _map = new parameter_map(60, 260, 880);
+
+        _saw_wave = LoadTexture("/Users/lukenash/Documents/Github/synth/saw_wave.png");
+        _tri_wave = LoadTexture("/Users/lukenash/Documents/Github/synth/tri_wave_12.png");
+        _sqr_wave = LoadTexture("/Users/lukenash/Documents/Github/synth/sqr_wave.png");
     }
 
     void draw() {
@@ -384,6 +388,17 @@ public:
         }
 
         _frequency_knob->draw();
+
+        float symbol_scale = 0.08;
+
+        Vector2 tri_wave_position = {_audio_tri_out.gui._circle_position.x-_audio_tri_out.gui._radius-(_tri_wave.width*symbol_scale)-5.0f, _audio_tri_out.gui._circle_position.y-(_tri_wave.height*symbol_scale)/2.0f};
+        DrawTextureEx(_tri_wave, tri_wave_position*BASE_UNIT, 0,  symbol_scale*BASE_UNIT, WHITE);
+
+        Vector2 sqr_wave_position = {_audio_sqr_out.gui._circle_position.x-_audio_sqr_out.gui._radius-(_sqr_wave.width*symbol_scale)-5.0f, _audio_sqr_out.gui._circle_position.y-(_sqr_wave.height*symbol_scale)/2.0f};
+        DrawTextureEx(_sqr_wave, sqr_wave_position*BASE_UNIT, 0, symbol_scale*BASE_UNIT, WHITE);
+
+        Vector2 saw_wave_position = {_audio_saw_out.gui._circle_position.x-_audio_saw_out.gui._radius-(_saw_wave.width*symbol_scale)-5.0f, _audio_saw_out.gui._circle_position.y-(_saw_wave.height*symbol_scale)/2.0f};
+        DrawTextureEx(_saw_wave, saw_wave_position*BASE_UNIT, 0, symbol_scale*BASE_UNIT, WHITE);
     }
 
     float process() {
@@ -428,6 +443,10 @@ private:
     group* _group_box;
 
     parameter_map* _map;
+
+    Texture2D _tri_wave;
+    Texture2D _saw_wave;
+    Texture2D _sqr_wave;
 };
 
 class lfo {
@@ -438,7 +457,7 @@ public:
     void init(float sample_rate, patch_manager* patch_bay) {
         _patch_bay = patch_bay;
 
-        _module_box = {10, 187.5, 180, 112.5};
+        _module_box = {10, 227.5, 170, 112.5};
         _map = new parameter_map(0.01, 10, 60);
 
         _lfo_frequency = 0.5;
@@ -450,17 +469,21 @@ public:
         _lfo_saw.SetWaveform(daisysp::Oscillator::WAVE_SAW);
         _lfo_sqr.SetWaveform(daisysp::Oscillator::WAVE_SQUARE);
 
-        _lfo_tri_out.gui.init("Tri", {_module_box.x+135, _module_box.y+15}, true);
-        _lfo_saw_out.gui.init("Saw", {_module_box.x+135, _module_box.y+67.f}, true);
-        _lfo_sqr_out.gui.init("Sqr", {_module_box.x+75, _module_box.y+67.5f}, true);
+        _lfo_tri_out.gui.init("", {_module_box.x+130, _module_box.y+15}, true);
+        _lfo_saw_out.gui.init("", {_module_box.x+130, _module_box.y+67.f}, true);
+        _lfo_sqr_out.gui.init("", {_module_box.x+72.5f, _module_box.y+67.5f}, true);
 
         _pulse_width.gui.init("PW", {_module_box.x+15, _module_box.y+67.5f}, false);
         _retrig.gui.init("Reset", {_module_box.x+15, _module_box.y+15}, false);
 
         float radius = 22.5f;
-        _frequency_knob  = new knob({_module_box.x+67.5f+radius, _module_box.y+7.5f+radius}, radius, &_lfo_frequency, 0.0, 1.0f);
+        _frequency_knob  = new knob({_module_box.x+65.0f+radius, _module_box.y+7.5f+radius}, radius, &_lfo_frequency, 0.0, 1.0f);
 
         _group_box = new group(_module_box, "LFO");
+
+        _saw_wave = LoadTexture("/Users/lukenash/Documents/Github/synth/saw_wave.png");
+        _tri_wave = LoadTexture("/Users/lukenash/Documents/Github/synth/tri_wave_12.png");
+        _sqr_wave = LoadTexture("/Users/lukenash/Documents/Github/synth/sqr_wave.png");
     }
 
     void draw() {
@@ -475,6 +498,17 @@ public:
 
         _pulse_width.gui.draw();
         _retrig.gui.draw();
+
+        float symbol_scale = 0.08;
+
+        Vector2 tri_wave_position = {_lfo_tri_out.gui._circle_position.x-_lfo_tri_out.gui._radius-(_tri_wave.width*symbol_scale)-5.0f, _lfo_tri_out.gui._circle_position.y-(_tri_wave.height*symbol_scale)/2.0f};
+        DrawTextureEx(_tri_wave, tri_wave_position*BASE_UNIT, 0,  symbol_scale*BASE_UNIT, WHITE);
+
+        Vector2 sqr_wave_position = {_lfo_sqr_out.gui._circle_position.x-_lfo_sqr_out.gui._radius-(_sqr_wave.width*symbol_scale)-5.0f, _lfo_sqr_out.gui._circle_position.y-(_sqr_wave.height*symbol_scale)/2.0f};
+        DrawTextureEx(_sqr_wave, sqr_wave_position*BASE_UNIT, 0, symbol_scale*BASE_UNIT, WHITE);
+
+        Vector2 saw_wave_position = {_lfo_saw_out.gui._circle_position.x-_lfo_saw_out.gui._radius-(_saw_wave.width*symbol_scale)-5.0f, _lfo_saw_out.gui._circle_position.y-(_saw_wave.height*symbol_scale)/2.0f};
+        DrawTextureEx(_saw_wave, saw_wave_position*BASE_UNIT, 0, symbol_scale*BASE_UNIT, WHITE);
     }
 
     float process() {
@@ -519,6 +553,10 @@ private:
     parameter_map* _map;
 
     float _last_retrig_value = 0.0f;
+
+    Texture2D _tri_wave;
+    Texture2D _saw_wave;
+    Texture2D _sqr_wave;
 };
 
 class filter {
@@ -534,7 +572,7 @@ public:
         _resonance = 0.5;
         _filter.SetFreq(_frequency);
 
-        _module_box = {272.5f, 45, 195, 135};
+        _module_box = {272.5f, 85, 195, 135};
 
         _in.gui.init("input", {_module_box.x+22.5f, _module_box.y+82.5f}, false);
         _out.gui.init("output", {_module_box.x+142.5f, _module_box.y+82.5f}, true);
@@ -604,7 +642,7 @@ public:
     void init(float sample_rate) {
         _env.Init(sample_rate);
 
-        _module_box = {310,187.5, 157.5, 112.5};
+        _module_box = {310,227.5, 157.5, 112.5};
 
         _attack = 0.1;
         _decay = 0.5;
@@ -688,12 +726,12 @@ public:
     ~mult(){}
 
     void init() {
-        _module_box = {197.5, 187.5, 105, 112.5};
+        _module_box = {187.5, 227.5, 115, 112.5};
 
-        _in.gui.init("in", {_module_box.x+15, _module_box.y+15}, false);
-        _out1.gui.init("out", {_module_box.x+60, _module_box.y+15}, true);
-        _out2.gui.init("out", {_module_box.x+15, _module_box.y+67.5f}, true);
-        _out3.gui.init("out", {_module_box.x+60, _module_box.y+67.5f}, true);
+        _in.gui.init("", {_module_box.x+20, _module_box.y+15}, false);
+        _out1.gui.init("", {_module_box.x+72.5f, _module_box.y+15}, true);
+        _out2.gui.init("", {_module_box.x+20, _module_box.y+67.5f}, true);
+        _out3.gui.init("", {_module_box.x+72.5f, _module_box.y+67.5f}, true);
 
         _group_box = new group(_module_box, "Mult");
     }
@@ -705,6 +743,27 @@ public:
         _out1.gui.draw();
         _out2.gui.draw();
         _out3.gui.draw();
+
+        int line_thickness = 3; 
+        Vector2 top_left = {_in.gui._circle_position.x+_in.gui._radius, _in.gui._circle_position.y+_in.gui._radius};
+        Vector2 top_right = {_out1.gui._circle_position.x-_in.gui._radius, _out1.gui._circle_position.y+_out1.gui._radius};
+        Vector2 bottom_left = {_out2.gui._circle_position.x+_in.gui._radius, _out2.gui._circle_position.y-_out2.gui._radius};
+        Vector2 bottom_right = {_out3.gui._circle_position.x-_in.gui._radius, _out3.gui._circle_position.y-_out3.gui._radius};
+
+
+        DrawLineEx(top_left*BASE_UNIT, bottom_right*BASE_UNIT, line_thickness*BASE_UNIT, BLACK);
+        DrawLineEx(top_right*BASE_UNIT, bottom_left*BASE_UNIT, line_thickness*BASE_UNIT, BLACK);
+
+        Vector2 triangle_point = {bottom_right.x+2.5f, bottom_right.y+2.5f};
+        DrawTriangle(triangle_point*BASE_UNIT, (Vector2) {triangle_point.x, triangle_point.y-10.0f}*BASE_UNIT, (Vector2) {triangle_point.x-10.0f, triangle_point.y}*BASE_UNIT, BLACK);
+
+        triangle_point = {bottom_left.x-2.5f, bottom_left.y+2.5f};
+        DrawTriangle(triangle_point*BASE_UNIT, (Vector2) {triangle_point.x+10.0f, triangle_point.y}*BASE_UNIT, (Vector2) {triangle_point.x, triangle_point.y-10.0f}*BASE_UNIT, BLACK);
+
+        triangle_point = {top_right.x+2.5f, top_right.y-2.5f};
+        DrawTriangle(triangle_point*BASE_UNIT, (Vector2) {triangle_point.x-10.0f, triangle_point.y}*BASE_UNIT, (Vector2) {triangle_point.x, triangle_point.y+10.0f}*BASE_UNIT, BLACK);
+
+
     }
 
     void process() {
@@ -729,14 +788,14 @@ public:
     ~vca() {}
 
     void init() {
-        _module_box = {475, 45, 97.5f, 255};
-        _in_a1.gui.init("ina1", {_module_box.x+15, _module_box.y+22.5f}, false);
-        _in_a2.gui.init("ina2", {_module_box.x+15, _module_box.y+82.5f}, false);
-        _out_a1.gui.init("outa1", {_module_box.x+52.5f, _module_box.y+52.5f}, true);
+        _module_box = {475, 85, 97.5f, 255};
+        _in_a1.gui.init("", {_module_box.x+15, _module_box.y+22.5f}, false);
+        _in_a2.gui.init("", {_module_box.x+55, _module_box.y+22.5f}, false);
+        _out_a1.gui.init("", {_module_box.x+55, _module_box.y+87.5f}, true);
 
-        _in_b1.gui.init("inb1", {_module_box.x+15, _module_box.y+142.5f}, false);
-        _in_b2.gui.init("inb2", {_module_box.x+15, _module_box.y+202.5f}, false);
-        _out_b1.gui.init("outb1", {_module_box.x+52.5f, _module_box.y+172.5f}, true);
+        _in_b1.gui.init("", {_module_box.x+15, _module_box.y+145.0f}, false);
+        _in_b2.gui.init("", {_module_box.x+55, _module_box.y+145.0f}, false);
+        _out_b1.gui.init("", {_module_box.x+55, _module_box.y+210.0f}, true);
 
         _group_box = new group(_module_box, "VCA");
     }
@@ -754,6 +813,35 @@ public:
         _in_b1.gui.draw();
         _in_b2.gui.draw();
         _out_b1.gui.draw();
+
+        int line_thickness = 3;
+
+        // Top arrow
+        Vector2 in_a1_center_bottom = {_in_a1.gui._circle_position.x, _in_a1.gui._circle_position.y+_in_a1.gui._radius};
+        Vector2 in_a2_center_bottom = {_in_a2.gui._circle_position.x, _in_a2.gui._circle_position.y+_in_a2.gui._radius};
+        Vector2 out_a_center_top = {_out_a1.gui._circle_position.x, _out_a1.gui._circle_position.y-_out_a1.gui._radius};
+        Vector2 a_midpoint = {in_a1_center_bottom.x+(in_a2_center_bottom.x-in_a1_center_bottom.x)/2.0f, in_a1_center_bottom.y+(out_a_center_top.y-in_a1_center_bottom.y)/3.0f};
+
+        DrawLineEx((Vector2){in_a1_center_bottom.x, in_a1_center_bottom.y+2.5f}*BASE_UNIT, (Vector2){in_a1_center_bottom.x, a_midpoint.y}*BASE_UNIT, line_thickness*BASE_UNIT, BLACK);
+        DrawLineEx((Vector2){in_a2_center_bottom.x, in_a2_center_bottom.y+2.5f}*BASE_UNIT, (Vector2){out_a_center_top.x, out_a_center_top.y-5.0f}*BASE_UNIT, line_thickness*BASE_UNIT, BLACK);
+        DrawLineEx((Vector2){in_a1_center_bottom.x-(line_thickness/2.0f), a_midpoint.y}*BASE_UNIT, (Vector2){out_a_center_top.x, a_midpoint.y}*BASE_UNIT, line_thickness*BASE_UNIT, BLACK);
+        
+        DrawTriangle((Vector2){out_a_center_top.x, out_a_center_top.y-2.5f}*BASE_UNIT, (Vector2){out_a_center_top.x+10.0f, out_a_center_top.y-12.5f}*BASE_UNIT, (Vector2){out_a_center_top.x-10.0f, out_a_center_top.y-12.5f}*BASE_UNIT, BLACK);
+
+        // Bottom arrow
+        Vector2 in_b1_center_bottom = {_in_b1.gui._circle_position.x, _in_b1.gui._circle_position.y+_in_b1.gui._radius};
+        Vector2 in_b2_center_bottom = {_in_b2.gui._circle_position.x, _in_b2.gui._circle_position.y+_in_b2.gui._radius};
+        Vector2 out_b_center_top = {_out_b1.gui._circle_position.x, _out_b1.gui._circle_position.y-_out_b1.gui._radius};
+        Vector2 b_midpoint = {in_b1_center_bottom.x+(in_b2_center_bottom.x-in_b1_center_bottom.x)/2.0f, in_b1_center_bottom.y+(out_b_center_top.y-in_b1_center_bottom.y)/3.0f};
+
+        DrawLineEx((Vector2){in_b1_center_bottom.x, in_b1_center_bottom.y+2.5f}*BASE_UNIT, (Vector2){in_b1_center_bottom.x, b_midpoint.y}*BASE_UNIT, line_thickness*BASE_UNIT, BLACK);
+        DrawLineEx((Vector2){in_b2_center_bottom.x, in_b2_center_bottom.y+2.5f}*BASE_UNIT, (Vector2){out_b_center_top.x, out_b_center_top.y-5.0f}*BASE_UNIT, line_thickness*BASE_UNIT, BLACK);
+        DrawLineEx((Vector2){in_b1_center_bottom.x-(line_thickness/2.0f), b_midpoint.y}*BASE_UNIT, (Vector2){out_b_center_top.x, b_midpoint.y}*BASE_UNIT, line_thickness*BASE_UNIT, BLACK);
+        
+        DrawTriangle((Vector2){out_b_center_top.x, out_b_center_top.y-2.5f}*BASE_UNIT, (Vector2){out_b_center_top.x+10.0f, out_b_center_top.y-12.5f}*BASE_UNIT, (Vector2){out_b_center_top.x-10.0f, out_b_center_top.y-12.5f}*BASE_UNIT, BLACK);
+        
+
+        
     }
 
     patch_destination _in_a1;
@@ -776,7 +864,7 @@ public:
 
     void init(float sample_rate, float tempo) {
 
-        _module_box = {10, 307.5f, 562.5f, 97.5f};
+        _module_box = {10, 347.5f, 562.5f, 97.5f};
         _cv.gui.init("CV Out", {_module_box.x + 82.5f, _module_box.y + 52.5f}, true);
         _trig.gui.init("Gate Out", {_module_box.x + 82.5f, _module_box.y + 15}, true);
         _tempo = tempo;
@@ -790,9 +878,9 @@ public:
         radius = 18.75;
         float gap = 15;
         for (int i = 0; i < _num_steps; i++) {
-            _step_knobs[i] = new knob({_module_box.x+146.25f+radius+(i*(radius+radius+gap)), _module_box.y+57.5f+radius}, radius, &_cv_pattern[i], -1.0f, 1.0f);
+            _step_knobs[i] = new knob({_module_box.x+146.25f+radius+(i*(radius+radius+gap)), _module_box.y+55+radius}, radius, &_cv_pattern[i], -1.0f, 1.0f);
             _step_switches[i] = new toggle_switch({_module_box.x+150+(i*52.5f), _module_box.y + 10.0f}, &_trig_pattern[i]);
-            _lights[i] = new light({_module_box.x+146.25f+radius+(i*(radius+radius+gap)), _module_box.y+50.0f}, 5, PACIFICO_RED);
+            _lights[i] = new light({_module_box.x+146.25f+radius+(i*(radius+radius+gap)+5), _module_box.y+50.0f}, 5, PACIFICO_RED);
         }
 
         _group_box = new group(_module_box, "Sequencer");
@@ -887,19 +975,19 @@ public:
         _gain_1= 0.2;
         _gain_2 = 0.2;
 
-        _module_box = {580, 45, 90, 360};
+        _module_box = {580, 85, 90, 360};
 
-        _in_1.gui.init("Audio 1", {_module_box.x+7.5f, _module_box.y+22.5f}, false);
+        _group_box = new group(_module_box, "Mixer");
 
-        _in_2.gui.init("Audio 2", {_module_box.x+7.5f, _module_box.y+112.5f}, false);
+        _in_1.gui.init("", {_module_box.x+7.5f+_group_box->_offset.x, _module_box.y+22.5f}, false);
+
+        _in_2.gui.init("", {_module_box.x+7.5f+_group_box->_offset.x, _module_box.y+112.5f}, false);
 
         float radius = 22.5;
         _gain_1_knob = new knob({_module_box.x+37.5f+radius, _module_box.y+45+radius}, radius, &_gain_1, 0.0, 0.5);
         _gain_2_knob = new knob({_module_box.x+37.5f+radius, _module_box.y+135+radius}, radius, &_gain_2, 0.0, 0.5);
 
-        _group_box = new group(_module_box, "Mixer");
-
-        _meter = new volume_meter({_module_box.x+20, _module_box.y+200, 50.0f, 140.0f});
+        _meter = new volume_meter({_module_box.x+20, _module_box.y+200, 55.0f, 140.0f});
     }
 
     float process() {

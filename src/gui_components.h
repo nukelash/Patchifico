@@ -192,13 +192,21 @@ private:
 class group {
 public:
     group(Rectangle border, std::string title) {
-        _border = border;
+        //_border = border;
+
+        _main_rec = {border.x + _offset.x, border.y, border.width - _offset.x, border.height + _offset.y};
+
+        _shadow = {border.x, border.y - _offset.y, border.width - _offset.x, border.height + _offset.y};
+
+
+
+
         int title_width = title.size() * 10;//MeasureText("title.c_str()", 10);
-        std::cout << title_width << std::endl;
-        std::cout << title.size() << std::endl;
+        //std::cout << title_width << std::endl;
+        //std::cout << title.size() << std::endl;
         float label_width = title_width + 10;
         float label_pos_x = (border.width/2.0f) - (label_width/2.0f);
-        _label_rectangle = {_border.x+label_pos_x, _border.y-5, label_width, 10};
+        _label_rectangle = {_main_rec.x+label_pos_x, _main_rec.y-5, label_width, 10};
         // _vertices[0] = {border.x, border.y};
         // _vertices[1] = {border.x+border.width, border.y};
         // _vertices[2] = {border.x+border.width, border.y+border.height};
@@ -209,10 +217,19 @@ public:
 
     void draw() {
         
-        DrawRectangleRounded(_border*BASE_UNIT, 0.3, 8, PACIFICO_GOLD);
-        DrawRectangleRoundedLinesEx(_border*BASE_UNIT, 0.3, 8, 1.5, BLACK);
-        DrawRectangleRounded(_label_rectangle*BASE_UNIT, 0.3, 8, WHITE);
-        DrawRectangleRoundedLinesEx(_label_rectangle*BASE_UNIT, 0.3, 8, 1.5, BLACK);
+        // == Shadow rectangle ==
+        float roundness = calculate_roundness(_shadow, 8);
+        DrawRectangleRounded(_shadow*BASE_UNIT, roundness, 8, BLACK);
+
+        // == Main rectangle  ==
+        roundness = calculate_roundness(_main_rec, 8);
+        DrawRectangleRounded(_main_rec*BASE_UNIT, roundness, 8, PACIFICO_GOLD);
+        DrawRectangleRoundedLinesEx(_main_rec*BASE_UNIT, roundness, 8, 1.5*BASE_UNIT, BLACK);
+
+        // == Label ==
+        roundness = calculate_roundness(_label_rectangle, 2);
+        DrawRectangleRounded(_label_rectangle*BASE_UNIT, roundness, 8, WHITE);
+        DrawRectangleRoundedLinesEx(_label_rectangle*BASE_UNIT, roundness, 8, 1.5*BASE_UNIT, BLACK);
         DrawText(_title.c_str(), (_label_rectangle.x + (_title.size()*2))*BASE_UNIT, _label_rectangle.y*BASE_UNIT, 12, BLACK);
         
         // for(int i = 0; i < 4; i++) {
@@ -224,9 +241,22 @@ public:
         
     }
 
+    Vector2 _offset = {5, -5}; //changes how the rectangles are positioned on top of each other
+
 private:
 
-    Rectangle _border;
+    float calculate_roundness(Rectangle rec, float radius) {
+        // roundness in raylib changes based on rectangle dimensions, this will solve for that based on rounded corner pixel radius
+
+        // Calculate corner radius
+        //float radius = (rec.width > rec.height)? (rec.height*roundness)/2 : (rec.width*roundness)/2;
+
+        float roundness = (rec.width > rec.height)? (2.0f*radius)/rec.height : (2.0f*radius)/rec.width;
+        return roundness;
+    }
+
+    Rectangle _shadow;
+    Rectangle _main_rec;
     Rectangle _label_rectangle;
     std::string _title;
 };

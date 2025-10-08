@@ -51,10 +51,6 @@ void callback(ma_device* pDevice, void* pOutput, const void* pInput, ma_uint32 f
 }
 
 void gui_loop() {
-    SetConfigFlags(FLAG_MSAA_4X_HINT);
-    SetConfigFlags(FLAG_WINDOW_RESIZABLE);
-    InitWindow(680, 415, "Virtual Modular Synth");
-    SetTargetFPS(60);
     Font title_font = LoadFont("/Users/lukenash/Downloads/pacifico-beer.otf/pacifico-beer.otf");
 
     bool showMessageBox = false;
@@ -63,13 +59,19 @@ void gui_loop() {
     int x = 60;
     int y = 60;
 
+    //Image title = LoadImage("/Users/lukenash/Documents/Github/synth/logo.png");
+    //Image anchor= LoadImage("/Users/lukenash/Documents/Github/synth/anchor.png")
+    Texture2D logo = LoadTexture("/Users/lukenash/Documents/Github/synth/logo.png");
+    Texture2D anchor = LoadTexture("/Users/lukenash/Documents/Github/synth/anchor.png");
+    
+
     while (!WindowShouldClose())
     {
         // Draw
         //----------------------------------------------------------------------------------
 
         if(IsWindowResized()){
-            float ratio = 680.0f / 415.0f;
+            float ratio = 680.0f / 455.0f;
             SetWindowSize(GetScreenWidth(), GetScreenWidth() / ratio);
             BASE_UNIT = GetScreenWidth() / 680.0f;
         }
@@ -77,7 +79,7 @@ void gui_loop() {
         BeginDrawing();
             ClearBackground(PACIFICO_BROWN);
             //DrawRectangleRounded((Rectangle{10, 10, 700, 400})*BASE_UNIT, 0.05, 8,  PACIFICO_BROWN);
-            DrawTextEx(title_font, "Patchifico", (Vector2{20, 20})*BASE_UNIT, 24*BASE_UNIT, 1, BLACK);
+            //DrawTextEx(title_font, "Patchifico", (Vector2{20, 20})*BASE_UNIT, 24*BASE_UNIT, 1, BLACK);
 
             my_osc.draw();
             my_lfo.draw();
@@ -88,6 +90,10 @@ void gui_loop() {
             my_mult.draw();
             my_sequencer.draw();
             my_patch_bay.draw();
+
+            DrawTextureEx(logo, (Vector2){5, 0}*BASE_UNIT, 0,  0.45*BASE_UNIT, WHITE);
+            DrawTextureEx(anchor, (Vector2){350, 0}*BASE_UNIT, 0, 0.3*BASE_UNIT, WHITE);
+
         EndDrawing();
     }
 
@@ -95,6 +101,10 @@ void gui_loop() {
 }
 
 int main() {
+    SetConfigFlags(FLAG_MSAA_4X_HINT);
+    SetConfigFlags(FLAG_WINDOW_RESIZABLE);
+    InitWindow(680, 455, "Virtual Modular Synth");
+    SetTargetFPS(60);
     int user_data;
 
     my_osc.init(48000, &my_patch_bay);
