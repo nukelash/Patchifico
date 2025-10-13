@@ -11,6 +11,8 @@
 #define PACIFICO_BLUE CLITERAL(Color){105, 175, 249, 255}
 #define PACIFICO_GREEN CLITERAL(Color){73, 165, 11, 255}
 
+Font label_font;
+
 float BASE_UNIT = 1.0f;
 
 class parameter_map {
@@ -90,9 +92,10 @@ public:
 
     }
 
-private:
     Vector2 _position;
     int _radius;
+
+private:
 
     bool _is_dragging;
     float _mouse_click_y;
@@ -180,7 +183,7 @@ public:
     }
 private:
     Vector2 _position;
-    float _side_length = 30;
+    float _side_length = 19.5f;
 
     bool _toggled = 0;
     bool* _parameter;
@@ -201,16 +204,11 @@ public:
 
 
 
-        int title_width = title.size() * 10;//MeasureText("title.c_str()", 10);
-        //std::cout << title_width << std::endl;
-        //std::cout << title.size() << std::endl;
-        float label_width = title_width + 10;
+        Vector2 title_size = MeasureTextEx(label_font, title.c_str(), 14, 1);
+        _title_width = title_size.x;
+        float label_width = _title_width + 10;
         float label_pos_x = (border.width/2.0f) - (label_width/2.0f);
         _label_rectangle = {_main_rec.x+label_pos_x, _main_rec.y-5, label_width, 10};
-        // _vertices[0] = {border.x, border.y};
-        // _vertices[1] = {border.x+border.width, border.y};
-        // _vertices[2] = {border.x+border.width, border.y+border.height};
-        // _vertices[3] = {border.x, border.y+border.height};
         _title = title;
     }
     ~group() {}
@@ -230,14 +228,7 @@ public:
         roundness = calculate_roundness(_label_rectangle, 2);
         DrawRectangleRounded(_label_rectangle*BASE_UNIT, roundness, 8, WHITE);
         DrawRectangleRoundedLinesEx(_label_rectangle*BASE_UNIT, roundness, 8, 1.5*BASE_UNIT, BLACK);
-        DrawText(_title.c_str(), (_label_rectangle.x + (_title.size()*2))*BASE_UNIT, _label_rectangle.y*BASE_UNIT, 12, BLACK);
-        
-        // for(int i = 0; i < 4; i++) {
-        //     int next = (i+1) % 4;
-        //     DrawLineV(_vertices[i], _vertices[next], BLACK);
-        // }
-
-    
+        DrawTextEx(label_font, _title.c_str(), {(_label_rectangle.x + 5)*BASE_UNIT, (_label_rectangle.y-2.0f)*BASE_UNIT}, 14*BASE_UNIT, 1, BLACK); 
         
     }
 
@@ -259,6 +250,7 @@ private:
     Rectangle _main_rec;
     Rectangle _label_rectangle;
     std::string _title;
+    float _title_width;
 };
 
 class light {

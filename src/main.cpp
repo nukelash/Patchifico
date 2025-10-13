@@ -71,7 +71,7 @@ void gui_loop() {
         //----------------------------------------------------------------------------------
 
         if(IsWindowResized()){
-            float ratio = 680.0f / 455.0f;
+            float ratio = 680.0f / 497.5f;
             SetWindowSize(GetScreenWidth(), GetScreenWidth() / ratio);
             BASE_UNIT = GetScreenWidth() / 680.0f;
         }
@@ -103,8 +103,9 @@ void gui_loop() {
 int main() {
     SetConfigFlags(FLAG_MSAA_4X_HINT);
     SetConfigFlags(FLAG_WINDOW_RESIZABLE);
-    InitWindow(680, 455, "Virtual Modular Synth");
+    InitWindow(680, 497.5, "Virtual Modular Synth");
     SetTargetFPS(60);
+    label_font = LoadFontEx("/Users/lukenash/Downloads/made_tommy/MADE TOMMY Medium_PERSONAL USE.otf", 128, NULL, 0);
     int user_data;
 
     my_osc.init(48000, &my_patch_bay);
