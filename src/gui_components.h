@@ -5,13 +5,7 @@
 #include "raylib.h"
 #include "raymath.h"
 
-#define PACIFICO_GOLD CLITERAL(Color){254, 224, 33, 255}
-#define PACIFICO_BROWN CLITERAL(Color){182, 126, 12, 255}
-#define PACIFICO_RED CLITERAL(Color){248, 48, 23, 255}
-#define PACIFICO_BLUE CLITERAL(Color){105, 175, 249, 255}
-#define PACIFICO_GREEN CLITERAL(Color){73, 165, 11, 255}
-
-Font label_font;
+#include "visual_config.h"
 
 float BASE_UNIT = 1.0f;
 
@@ -142,7 +136,7 @@ public:
     }
 private:
     Vector2 _position;
-    float _side_length = 30;
+    float _side_length = 25;
 
     bool _toggled = 0;
     bool* _parameter;
@@ -204,7 +198,7 @@ public:
 
 
 
-        Vector2 title_size = MeasureTextEx(label_font, title.c_str(), 14, 1);
+        Vector2 title_size = MeasureTextEx(PANEL_FONT, title.c_str(), PANEL_TITLE_FONT_SIZE, PANEL_TITLE_FONT_SPACING);
         _title_width = title_size.x;
         float label_width = _title_width + 10;
         float label_pos_x = (border.width/2.0f) - (label_width/2.0f);
@@ -228,7 +222,7 @@ public:
         roundness = calculate_roundness(_label_rectangle, 2);
         DrawRectangleRounded(_label_rectangle*BASE_UNIT, roundness, 8, WHITE);
         DrawRectangleRoundedLinesEx(_label_rectangle*BASE_UNIT, roundness, 8, 1.5*BASE_UNIT, BLACK);
-        DrawTextEx(label_font, _title.c_str(), {(_label_rectangle.x + 5)*BASE_UNIT, (_label_rectangle.y-2.0f)*BASE_UNIT}, 14*BASE_UNIT, 1, BLACK); 
+        DrawTextEx(PANEL_FONT, _title.c_str(), {(_label_rectangle.x + 5)*BASE_UNIT, (_label_rectangle.y-2.0f)*BASE_UNIT}, PANEL_TITLE_FONT_SIZE*BASE_UNIT, PANEL_TITLE_FONT_SPACING*BASE_UNIT, BLACK); 
         
     }
 

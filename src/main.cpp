@@ -103,9 +103,10 @@ void gui_loop() {
 int main() {
     SetConfigFlags(FLAG_MSAA_4X_HINT);
     SetConfigFlags(FLAG_WINDOW_RESIZABLE);
+    SetConfigFlags(FLAG_WINDOW_TOPMOST);
     InitWindow(680, 497.5, "Virtual Modular Synth");
     SetTargetFPS(60);
-    label_font = LoadFontEx("/Users/lukenash/Downloads/made_tommy/MADE TOMMY Medium_PERSONAL USE.otf", 128, NULL, 0);
+    InitVisualConfig();
     int user_data;
 
     my_osc.init(48000, &my_patch_bay);

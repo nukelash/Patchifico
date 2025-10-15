@@ -6,6 +6,7 @@
 #include "raylib.h"
 
 #include "gui_components.h"
+#include "visual_config.h"
 
 #include <unordered_map>
 #include <algorithm>
@@ -37,7 +38,7 @@ public:
     void draw() {
         DrawCircleV(_circle_position*BASE_UNIT, _radius*BASE_UNIT, _color);
         DrawCircleV(_circle_position*BASE_UNIT, (_radius-3)*BASE_UNIT, GetColor(GuiGetStyle(DEFAULT, BACKGROUND_COLOR)));
-        DrawTextEx(label_font, _label.c_str(), {_label_position.x*BASE_UNIT, _label_position.y*BASE_UNIT}, 11*BASE_UNIT, 1, BLACK);
+        DrawTextEx(PANEL_FONT, _label.c_str(), {_label_position.x*BASE_UNIT, _label_position.y*BASE_UNIT}, PANEL_FONT_SIZE*BASE_UNIT, PANEL_FONT_SPACING, BLACK);
     }
 
     std::string _label;
@@ -349,8 +350,8 @@ public:
         _module_box.width = 210;
         _module_box.height = 142.5;
 
-        _audio_frequency_mod.gui.init("Freq Mod", {_module_box.x+37.5f, _module_box.y+82.5f}, false);
-        _pulse_width.gui.init("PW", {_module_box.x+97.5f, _module_box.y+82.5f}, false);
+        _audio_frequency_mod.gui.init("", {_module_box.x+37.5f, _module_box.y+82.5f}, false);
+        _pulse_width.gui.init("", {_module_box.x+97.5f, _module_box.y+82.5f}, false);
 
         _audio_tri_out.gui.init("", {_module_box.x+157.5f, _module_box.y+37.5f}, true);
         _audio_saw_out.gui.init("", {_module_box.x+157.5f, _module_box.y+82.5f}, true);
@@ -399,6 +400,12 @@ public:
 
         Vector2 saw_wave_position = {_audio_saw_out.gui._circle_position.x-(_saw_wave.width*symbol_scale)/2.0f, _audio_saw_out.gui._circle_position.y+_audio_saw_out.gui._radius+5.0f};
         DrawTextureEx(_saw_wave, saw_wave_position*BASE_UNIT, 0, symbol_scale*BASE_UNIT, WHITE);
+
+        Vector2 pw_label_position = {_pulse_width.gui._circle_position.x - ((MeasureTextEx(PANEL_FONT, "PW", PANEL_FONT_SIZE, PANEL_FONT_SPACING)).x*0.5f), _pulse_width.gui._circle_position.y + _pulse_width.gui._radius + 5};
+        DrawTextEx(PANEL_FONT, "PW", pw_label_position*BASE_UNIT, PANEL_FONT_SIZE*BASE_UNIT, PANEL_FONT_SPACING*BASE_UNIT, BLACK);
+
+        Vector2 freq_label_position = {_audio_frequency_mod.gui._circle_position.x - ((MeasureTextEx(PANEL_FONT, "Freq", PANEL_FONT_SIZE, PANEL_FONT_SPACING)).x*0.5f), _audio_frequency_mod.gui._circle_position.y + _audio_frequency_mod.gui._radius + 5};
+        DrawTextEx(PANEL_FONT, "Freq", freq_label_position*BASE_UNIT, PANEL_FONT_SIZE*BASE_UNIT, PANEL_FONT_SPACING*BASE_UNIT, BLACK);
     }
 
     float process() {
@@ -473,8 +480,8 @@ public:
         _lfo_saw_out.gui.init("", {_module_box.x+105, _module_box.y+75}, true);
         _lfo_sqr_out.gui.init("", {_module_box.x+15.0f, _module_box.y+75.0f}, true);
 
-        _pulse_width.gui.init("PW", {_module_box.x+15, _module_box.y+67.5f}, false);
-        _retrig.gui.init("Reset", {_module_box.x+82.5f, _module_box.y+30}, false);
+        _pulse_width.gui.init("", {_module_box.x+15, _module_box.y+67.5f}, false);
+        _retrig.gui.init("", {_module_box.x+82.5f, _module_box.y+30}, false);
 
         float radius = 22.5f;
         _frequency_knob  = new knob({_module_box.x+30.0f+radius, _module_box.y+22.5f+radius}, radius, &_lfo_frequency, 0.0, 1.0f);
@@ -509,6 +516,9 @@ public:
 
         Vector2 saw_wave_position = {_lfo_saw_out.gui._circle_position.x-(_saw_wave.width*symbol_scale)/2.0f, _lfo_saw_out.gui._circle_position.y+_lfo_saw_out.gui._radius+5.0f};
         DrawTextureEx(_saw_wave, saw_wave_position*BASE_UNIT, 0, symbol_scale*BASE_UNIT, WHITE);
+
+        Vector2 reset_label_position = {_retrig.gui._circle_position.x - ((MeasureTextEx(PANEL_FONT, "Reset", PANEL_FONT_SIZE, PANEL_FONT_SPACING)).x*0.5f), _retrig.gui._circle_position.y - _retrig.gui._radius - 12.5f};
+        DrawTextEx(PANEL_FONT, "Reset", reset_label_position*BASE_UNIT, PANEL_FONT_SIZE*BASE_UNIT, PANEL_FONT_SPACING*BASE_UNIT, BLACK);
     }
 
     float process() {
@@ -574,9 +584,9 @@ public:
 
         _module_box = {167.5, 237.5, 150, 142.5};
 
-        _in.gui.init("", {_module_box.x+15.0f, _module_box.y+30.0f}, false);
-        _out.gui.init("", {_module_box.x+105.0f, _module_box.y+30.0f}, true);
-        _cutoff_mod.gui.init("", {_module_box.x+60.0f, _module_box.y+30.0f}, false);
+        _in.gui.init("", {_module_box.x+15.0f, _module_box.y+15.0f}, false);
+        _out.gui.init("", {_module_box.x+105.0f, _module_box.y+15.0f}, true);
+        _cutoff_mod.gui.init("", {_module_box.x+60.0f, _module_box.y+15.0f}, false);
 
         float radius = 22.5f;
         _cutoff_knob = new knob({_module_box.x+22.5f+radius, _module_box.y+67.5f+radius}, radius, &_frequency, 0.0, 1.0);
@@ -608,11 +618,27 @@ public:
         float x_index = _module_box.x + x_pad;
 
         _group_box->draw();
+        //DrawLineEx(_cutoff_knob->_position, _cutoff_mod.gui._circle_position, 3, BLACK);
         _in.gui.draw();
         _out.gui.draw();
         _cutoff_mod.gui.draw();
         _cutoff_knob->draw();
         _resonance_knob->draw();
+
+        Vector2 cutoff_label_position = {_cutoff_knob->_position.x - ((MeasureTextEx(PANEL_FONT, "Cutoff", PANEL_FONT_SIZE, PANEL_FONT_SPACING)).x*0.5f), _cutoff_knob->_position.y + _cutoff_knob->_radius + 5};
+        DrawTextEx(PANEL_FONT, "Cutoff", cutoff_label_position*BASE_UNIT, PANEL_FONT_SIZE*BASE_UNIT, PANEL_FONT_SPACING*BASE_UNIT, BLACK);
+
+        Vector2 resonance_label_position = {_resonance_knob->_position.x - ((MeasureTextEx(PANEL_FONT, "Resonance", PANEL_FONT_SIZE, PANEL_FONT_SPACING)).x*0.5f), _resonance_knob->_position.y + _resonance_knob->_radius + 5};
+        DrawTextEx(PANEL_FONT, "Resonance", resonance_label_position*BASE_UNIT, PANEL_FONT_SIZE*BASE_UNIT, PANEL_FONT_SPACING*BASE_UNIT, BLACK);
+
+        Vector2 in_label_position = {_in.gui._circle_position.x - ((MeasureTextEx(PANEL_FONT, "in", PANEL_FONT_SIZE, PANEL_FONT_SPACING)).x*0.5f), _in.gui._circle_position.y + _in.gui._radius + 5};
+        DrawTextEx(PANEL_FONT, "in", in_label_position*BASE_UNIT, PANEL_FONT_SIZE*BASE_UNIT, PANEL_FONT_SPACING*BASE_UNIT, BLACK);
+
+        Vector2 cutoff_label_position_2 = {_cutoff_mod.gui._circle_position.x - ((MeasureTextEx(PANEL_FONT, "cutoff", PANEL_FONT_SIZE, PANEL_FONT_SPACING)).x*0.5f), _cutoff_mod.gui._circle_position.y + _cutoff_mod.gui._radius + 5};
+        DrawTextEx(PANEL_FONT, "cutoff", cutoff_label_position_2*BASE_UNIT, PANEL_FONT_SIZE*BASE_UNIT, PANEL_FONT_SPACING*BASE_UNIT, BLACK);
+        
+        Vector2 out_label_position = {_out.gui._circle_position.x - ((MeasureTextEx(PANEL_FONT, "out", PANEL_FONT_SIZE, PANEL_FONT_SPACING)).x*0.5f), _out.gui._circle_position.y + _out.gui._radius + 5};
+        DrawTextEx(PANEL_FONT, "out", out_label_position*BASE_UNIT, PANEL_FONT_SIZE*BASE_UNIT, PANEL_FONT_SPACING*BASE_UNIT, BLACK);
     }
 
     patch_destination _in;
@@ -648,8 +674,8 @@ public:
         _decay = 0.5;
         _last_trig_value = 0.0;
 
-        _trigger.gui.init("", {_module_box.x+37.5f, _module_box.y+30.0f}, false);
-        _output.gui.init("", {_module_box.x+82.5f, _module_box.y+30.0f}, true);
+        _trigger.gui.init("", {_module_box.x+37.5f, _module_box.y+15.0f}, false);
+        _output.gui.init("", {_module_box.x+82.5f, _module_box.y+15.0f}, true);
 
         float radius = 22.5f;
         _attack_knob = new knob({_module_box.x+15+radius, _module_box.y+67.5f+radius}, radius, &_attack, 0.0, 1.0);
@@ -657,9 +683,9 @@ public:
 
         _group_box = new group(_module_box, "Envelope");
 
-        _trig_button = new push_button({_module_box.x+12.0f, _module_box.y+35.25f}, &_trig_button_was_pushed);
+        _trig_button = new push_button({_module_box.x+12.0f, _module_box.y+20.25f}, &_trig_button_was_pushed);
 
-        _light = new light({_module_box.x+120.0f+5, _module_box.y+41.25f+5}, 5, PACIFICO_RED);
+        _light = new light({_module_box.x+120.0f+5, _module_box.y+26.25f+5}, 5, PACIFICO_RED);
 
         _map = new parameter_map(0.01, 0.2, 1.5);
     }
@@ -696,6 +722,18 @@ public:
         _decay_knob->draw();
         _trig_button->draw();
         _light->draw();
+
+        Vector2 trigger_label_position = {_attack_knob->_position.x - ((MeasureTextEx(PANEL_FONT, "trigger", PANEL_FONT_SIZE, PANEL_FONT_SPACING)).x*0.5f), _trigger.gui._circle_position.y + _trigger.gui._radius + 3.0f};
+        DrawTextEx(PANEL_FONT, "trigger", trigger_label_position*BASE_UNIT, PANEL_FONT_SIZE*BASE_UNIT, PANEL_FONT_SPACING*BASE_UNIT, BLACK);
+
+        Vector2 out_label_position = {_decay_knob->_position.x - ((MeasureTextEx(PANEL_FONT, "out", PANEL_FONT_SIZE, PANEL_FONT_SPACING)).x*0.5f), _trigger.gui._circle_position.y + _trigger.gui._radius + 3.0f};
+        DrawTextEx(PANEL_FONT, "out", out_label_position*BASE_UNIT, PANEL_FONT_SIZE*BASE_UNIT, PANEL_FONT_SPACING*BASE_UNIT, BLACK);
+
+        Vector2 attack_label_position = {_attack_knob->_position.x - ((MeasureTextEx(PANEL_FONT, "Attack", PANEL_FONT_SIZE, PANEL_FONT_SPACING)).x*0.5f), _attack_knob->_position.y + _attack_knob->_radius + 5.0f};
+        DrawTextEx(PANEL_FONT, "Attack", attack_label_position*BASE_UNIT, PANEL_FONT_SIZE*BASE_UNIT, PANEL_FONT_SPACING*BASE_UNIT, BLACK);
+
+        Vector2 decay_label_position = {_decay_knob->_position.x - ((MeasureTextEx(PANEL_FONT, "Decay", PANEL_FONT_SIZE, PANEL_FONT_SPACING)).x*0.5f), _decay_knob->_position.y + _decay_knob->_radius + 5.0f};
+        DrawTextEx(PANEL_FONT, "Decay", decay_label_position*BASE_UNIT, PANEL_FONT_SIZE*BASE_UNIT, PANEL_FONT_SPACING*BASE_UNIT, BLACK);
     }
 
     patch_destination _trigger;
@@ -729,16 +767,16 @@ public:
         _module_box = {227.5f, 85, 240, 142.5};
 
         _in.gui.init("", {_module_box.x+22.5f, _module_box.y+60}, false);
-        _out1.gui.init("", {_module_box.x+82.5f, _module_box.y+97.5f}, true);
-        _out2.gui.init("", {_module_box.x+135, _module_box.y+97.5f}, true);
-        _out3.gui.init("", {_module_box.x+187.5f, _module_box.y+97.5f}, true);
+        _out1.gui.init("", {_module_box.x+82.5f, _module_box.y+92.5f}, true);
+        _out2.gui.init("", {_module_box.x+135, _module_box.y+92.5f}, true);
+        _out3.gui.init("", {_module_box.x+187.5f, _module_box.y+92.5f}, true);
 
         _group_box = new group(_module_box, "Mult");
 
         float radius = 18.75f;
-        _knob_1 = new knob({_module_box.x+78.75f+radius, _module_box.y+35.0f+radius}, radius, &_gain_1, -1.0, 1.0);
-        _knob_2 = new knob({_module_box.x+131.25f+radius, _module_box.y+35.0f+radius}, radius, &_gain_2, -1.0, 1.0);
-        _knob_3 = new knob({_module_box.x+183.75f+radius, _module_box.y+35.0f+radius}, radius, &_gain_3, -1.0, 1.0);
+        _knob_1 = new knob({_module_box.x+78.75f+radius, _module_box.y+30.0f+radius}, radius, &_gain_1, -1.0, 1.0);
+        _knob_2 = new knob({_module_box.x+131.25f+radius, _module_box.y+30.0f+radius}, radius, &_gain_2, -1.0, 1.0);
+        _knob_3 = new knob({_module_box.x+183.75f+radius, _module_box.y+30.0f+radius}, radius, &_gain_3, -1.0, 1.0);
     }
 
     void draw() {
@@ -784,6 +822,18 @@ public:
         DrawTriangle((Vector2){triangle_tip_2}*BASE_UNIT, (Vector2){triangle_tip_2.x+10.0f, triangle_tip_2.y-10.0f}*BASE_UNIT, (Vector2){triangle_tip_2.x-10.0f, triangle_tip_2.y-10.0f}*BASE_UNIT, BLACK);
         DrawTriangle((Vector2){triangle_tip_3}*BASE_UNIT, (Vector2){triangle_tip_3.x+10.0f, triangle_tip_3.y-10.0f}*BASE_UNIT, (Vector2){triangle_tip_3.x-10.0f, triangle_tip_3.y-10.0f}*BASE_UNIT, BLACK);
 
+        Vector2 in_label_position = {_in.gui._circle_position.x - ((MeasureTextEx(PANEL_FONT, "in", PANEL_FONT_SIZE, PANEL_FONT_SPACING)).x*0.5f), _in.gui._circle_position.y + _in.gui._radius + 3.0f};
+        DrawTextEx(PANEL_FONT, "in", in_label_position*BASE_UNIT, PANEL_FONT_SIZE*BASE_UNIT, PANEL_FONT_SPACING*BASE_UNIT, BLACK);
+
+        Vector2 out_label_position = {_out1.gui._circle_position.x - ((MeasureTextEx(PANEL_FONT, "out", PANEL_FONT_SIZE, PANEL_FONT_SPACING)).x*0.5f), _out1.gui._circle_position.y + _out1.gui._radius + 2.0f};
+        DrawTextEx(PANEL_FONT, "out", out_label_position*BASE_UNIT, PANEL_FONT_SIZE*BASE_UNIT, PANEL_FONT_SPACING*BASE_UNIT, BLACK);
+
+        out_label_position = {_out2.gui._circle_position.x - ((MeasureTextEx(PANEL_FONT, "out", PANEL_FONT_SIZE, PANEL_FONT_SPACING)).x*0.5f), _out2.gui._circle_position.y + _out2.gui._radius + 2.0f};
+        DrawTextEx(PANEL_FONT, "out", out_label_position*BASE_UNIT, PANEL_FONT_SIZE*BASE_UNIT, PANEL_FONT_SPACING*BASE_UNIT, BLACK);
+
+        out_label_position = {_out3.gui._circle_position.x - ((MeasureTextEx(PANEL_FONT, "out", PANEL_FONT_SIZE, PANEL_FONT_SPACING)).x*0.5f), _out3.gui._circle_position.y + _out3.gui._radius + 2.0f};
+        DrawTextEx(PANEL_FONT, "out", out_label_position*BASE_UNIT, PANEL_FONT_SIZE*BASE_UNIT, PANEL_FONT_SPACING*BASE_UNIT, BLACK);
+
 
     }
 
@@ -818,13 +868,13 @@ public:
 
     void init() {
         _module_box = {475, 85, 97.5f, 295};
-        _in_a1.gui.init("", {_module_box.x+15, _module_box.y+22.5f}, false);
-        _in_a2.gui.init("", {_module_box.x+55, _module_box.y+22.5f}, false);
-        _out_a1.gui.init("", {_module_box.x+55, _module_box.y+87.5f}, true);
+        _in_a1.gui.init("", {_module_box.x+15, _module_box.y+30.0f}, false);
+        _in_a2.gui.init("", {_module_box.x+55, _module_box.y+30.0f}, false);
+        _out_a1.gui.init("", {_module_box.x+55, _module_box.y+95.0f}, true);
 
-        _in_b1.gui.init("", {_module_box.x+15, _module_box.y+145.0f}, false);
-        _in_b2.gui.init("", {_module_box.x+55, _module_box.y+145.0f}, false);
-        _out_b1.gui.init("", {_module_box.x+55, _module_box.y+210.0f}, true);
+        _in_b1.gui.init("", {_module_box.x+15, _module_box.y+167.5f}, false);
+        _in_b2.gui.init("", {_module_box.x+55, _module_box.y+167.5f}, false);
+        _out_b1.gui.init("", {_module_box.x+55, _module_box.y+232.5f}, true);
 
         _group_box = new group(_module_box, "VCA");
     }
@@ -869,6 +919,23 @@ public:
         
         DrawTriangle((Vector2){out_b_center_top.x, out_b_center_top.y-2.5f}*BASE_UNIT, (Vector2){out_b_center_top.x+10.0f, out_b_center_top.y-12.5f}*BASE_UNIT, (Vector2){out_b_center_top.x-10.0f, out_b_center_top.y-12.5f}*BASE_UNIT, BLACK);
         
+        Vector2 in_label_position = {_in_a1.gui._circle_position.x - ((MeasureTextEx(PANEL_FONT, "in", PANEL_FONT_SIZE, PANEL_FONT_SPACING)).x*0.5f), _in_a1.gui._circle_position.y - _in_a1.gui._radius - 12.5f};
+        DrawTextEx(PANEL_FONT, "in", in_label_position*BASE_UNIT, PANEL_FONT_SIZE*BASE_UNIT, PANEL_FONT_SPACING*BASE_UNIT, BLACK);
+
+        in_label_position = {_in_a2.gui._circle_position.x - ((MeasureTextEx(PANEL_FONT, "in", PANEL_FONT_SIZE, PANEL_FONT_SPACING)).x*0.5f), _in_a2.gui._circle_position.y - _in_a2.gui._radius - 12.5f};
+        DrawTextEx(PANEL_FONT, "in", in_label_position*BASE_UNIT, PANEL_FONT_SIZE*BASE_UNIT, PANEL_FONT_SPACING*BASE_UNIT, BLACK);
+
+        in_label_position = {_in_b1.gui._circle_position.x - ((MeasureTextEx(PANEL_FONT, "in", PANEL_FONT_SIZE, PANEL_FONT_SPACING)).x*0.5f), _in_b1.gui._circle_position.y - _in_b1.gui._radius - 12.5f};
+        DrawTextEx(PANEL_FONT, "in", in_label_position*BASE_UNIT, PANEL_FONT_SIZE*BASE_UNIT, PANEL_FONT_SPACING*BASE_UNIT, BLACK);
+
+        in_label_position = {_in_b2.gui._circle_position.x - ((MeasureTextEx(PANEL_FONT, "in", PANEL_FONT_SIZE, PANEL_FONT_SPACING)).x*0.5f), _in_b2.gui._circle_position.y - _in_b2.gui._radius - 12.5f};
+        DrawTextEx(PANEL_FONT, "in", in_label_position*BASE_UNIT, PANEL_FONT_SIZE*BASE_UNIT, PANEL_FONT_SPACING*BASE_UNIT, BLACK);
+
+        Vector2 out_label_position = {_out_a1.gui._circle_position.x - ((MeasureTextEx(PANEL_FONT, "out", PANEL_FONT_SIZE, PANEL_FONT_SPACING)).x*0.5f), _out_a1.gui._circle_position.y + _out_a1.gui._radius + 3.0f};
+        DrawTextEx(PANEL_FONT, "out", out_label_position*BASE_UNIT, PANEL_FONT_SIZE*BASE_UNIT, PANEL_FONT_SPACING*BASE_UNIT, BLACK);
+
+        out_label_position = {_out_b1.gui._circle_position.x - ((MeasureTextEx(PANEL_FONT, "out", PANEL_FONT_SIZE, PANEL_FONT_SPACING)).x*0.5f), _out_b1.gui._circle_position.y + _out_b1.gui._radius + 3.0f};
+        DrawTextEx(PANEL_FONT, "out", out_label_position*BASE_UNIT, PANEL_FONT_SIZE*BASE_UNIT, PANEL_FONT_SPACING*BASE_UNIT, BLACK);
 
         
     }
@@ -894,23 +961,26 @@ public:
     void init(float sample_rate, float tempo) {
 
         _module_box = {10, 390, 562.5f, 97.5f};
-        _cv.gui.init("", {_module_box.x + 82.5f, _module_box.y + 52.5f}, true);
-        _trig.gui.init("", {_module_box.x + 82.5f, _module_box.y + 15}, true);
+        _cv.gui.init("", {_module_box.x + 92.5f, _module_box.y + 52.5f}, true);
+        _trig.gui.init("", {_module_box.x + 92.5f, _module_box.y + 10}, true);
         _tempo = tempo;
 
         _metronome.Init(_tempo/60.0f*_num_steps, sample_rate); //multiplying by _num_steps should make it pulse once per step
         _step = 0;
 
         float radius = 22.5f;
-        _tempo_knob = new knob({_module_box.x+15+radius, _module_box.y+26.25f+radius},radius, &_tempo, 0.0, 1.0);
+        _tempo_knob = new knob({_module_box.x+15+radius, _module_box.y+22.5f+radius},radius, &_tempo, 0.0, 1.0);
 
         radius = 18.75;
         float gap = 15;
         for (int i = 0; i < _num_steps; i++) {
-            _step_knobs[i] = new knob({_module_box.x+146.25f+radius+(i*(radius+radius+gap)), _module_box.y+55+radius}, radius, &_cv_pattern[i], -1.0f, 1.0f);
+            _step_knobs[i] = new knob({_module_box.x+146.25f+radius+(i*(radius+radius+gap)), _module_box.y+50+radius}, radius, &_cv_pattern[i], -1.0f, 1.0f);
             _step_switches[i] = new toggle_switch({_module_box.x+150+(i*52.5f), _module_box.y + 10.0f}, &_trig_pattern[i]);
-            _lights[i] = new light({_module_box.x+146.25f+radius+(i*(radius+radius+gap)+5), _module_box.y+50.0f}, 5, PACIFICO_RED);
+            _lights[i] = new light({_module_box.x+146.25f+radius+(i*(radius+radius+gap)+12.5f), _module_box.y+50.0f}, 5, PACIFICO_RED);
         }
+
+        _cv_light = new light({_cv.gui._circle_position.x + _cv.gui._radius + 7.5f, _cv.gui._circle_position.y}, 5, PACIFICO_RED);
+        _trig_light = new light({_trig.gui._circle_position.x + _trig.gui._radius + 7.5f, _trig.gui._circle_position.y}, 5, PACIFICO_RED);
 
         _group_box = new group(_module_box, "Sequencer");
 
@@ -936,6 +1006,9 @@ public:
             _trig.value = _trig_pattern[_step];
             _cv.value = _cv_pattern[_step];
 
+            _trig_light->set_brightness(_trig.value);
+            _cv_light->set_brightness((_cv.value+1.0f)/2.0f);
+
             
             _lights[_step]->set_brightness(1.0);
         }
@@ -952,10 +1025,6 @@ public:
             
         }
 
-        if(_trig.value) {
-            DrawCircle(_module_box.x+10, _module_box.y+10, 5, RED);
-        }
-
         _cv.gui.draw();
         _trig.gui.draw();
         _tempo_knob->draw();
@@ -964,6 +1033,19 @@ public:
             _step_switches[i]->draw();
             _lights[i]->draw();
         }
+        _cv_light->draw();
+        _trig_light->draw();
+
+        Vector2 tempo_label_position = {_tempo_knob->_position.x - ((MeasureTextEx(PANEL_FONT, "Tempo", PANEL_FONT_SIZE, PANEL_FONT_SPACING)).x*0.5f), _tempo_knob->_position.y + _tempo_knob->_radius + 5.0f};
+        DrawTextEx(PANEL_FONT, "Tempo", tempo_label_position*BASE_UNIT, PANEL_FONT_SIZE*BASE_UNIT, PANEL_FONT_SPACING*BASE_UNIT, BLACK);
+
+        Vector2 text_size = MeasureTextEx(PANEL_FONT, "trig", PANEL_FONT_SIZE, PANEL_FONT_SPACING);
+        Vector2 trig_label_position = {_trig.gui._circle_position.x - _trig.gui._radius - text_size.x - 5, _trig.gui._circle_position.y - (text_size.y*0.5f)};
+        DrawTextEx(PANEL_FONT, "trig", trig_label_position*BASE_UNIT, PANEL_FONT_SIZE*BASE_UNIT, PANEL_FONT_SPACING*BASE_UNIT, BLACK);
+
+        text_size = MeasureTextEx(PANEL_FONT, "CV", PANEL_FONT_SIZE, PANEL_FONT_SPACING);
+        Vector2 cv_label_position = {_cv.gui._circle_position.x - _cv.gui._radius - text_size.x - 5, _cv.gui._circle_position.y - (text_size.y*0.5f)};
+        DrawTextEx(PANEL_FONT, "CV", cv_label_position*BASE_UNIT, PANEL_FONT_SIZE*BASE_UNIT, PANEL_FONT_SPACING*BASE_UNIT, BLACK);
     }
 
     void set_trig(int step, bool value) {
@@ -992,6 +1074,8 @@ private:
     group* _group_box;
     toggle_switch* _step_switches[_num_steps];
     light*  _lights[_num_steps];
+    light* _cv_light;
+    light* _trig_light;
     parameter_map* _map;
 };
 
@@ -1008,15 +1092,15 @@ public:
 
         _group_box = new group(_module_box, "Mixer");
 
-        _in_1.gui.init("", {_module_box.x+7.5f+_group_box->_offset.x, _module_box.y+22.5f}, false);
+        _in_1.gui.init("", {_module_box.x+45.0f-15+2.5f, _module_box.y+30.0f}, false);
 
-        _in_2.gui.init("", {_module_box.x+7.5f+_group_box->_offset.x, _module_box.y+112.5f}, false);
+        _in_2.gui.init("", {_module_box.x+45.0f-15+2.5f, _module_box.y+142.5f}, false);
 
         float radius = 22.5;
-        _gain_1_knob = new knob({_module_box.x+37.5f+radius, _module_box.y+45+radius}, radius, &_gain_1, 0.0, 0.5);
-        _gain_2_knob = new knob({_module_box.x+37.5f+radius, _module_box.y+135+radius}, radius, &_gain_2, 0.0, 0.5);
+        _gain_1_knob = new knob({_module_box.x+45.0f+2.5f, _module_box.y+75.0f+radius}, radius, &_gain_1, 0.0, 0.5);
+        _gain_2_knob = new knob({_module_box.x+45.0f+2.5f, _module_box.y+187.5f+radius}, radius, &_gain_2, 0.0, 0.5);
 
-        _meter = new volume_meter({_module_box.x+20, _module_box.y+200, 55.0f, 140.0f});
+        _meter = new volume_meter({_module_box.x+20, _module_box.y+250, 55.0f, 140.0f});
     }
 
     float process() {
@@ -1039,6 +1123,18 @@ public:
         _gain_1_knob->draw();
         _gain_2_knob->draw();
         _meter->draw();
+
+        Vector2 in_label_position = {_in_1.gui._circle_position.x - ((MeasureTextEx(PANEL_FONT, "in 1", PANEL_FONT_SIZE, PANEL_FONT_SPACING)).x*0.5f), _in_1.gui._circle_position.y - _in_1.gui._radius - 12.5f};
+        DrawTextEx(PANEL_FONT, "in 1", in_label_position*BASE_UNIT, PANEL_FONT_SIZE*BASE_UNIT, PANEL_FONT_SPACING*BASE_UNIT, BLACK);
+
+        in_label_position = {_in_2.gui._circle_position.x - ((MeasureTextEx(PANEL_FONT, "in 2", PANEL_FONT_SIZE, PANEL_FONT_SPACING)).x*0.5f), _in_2.gui._circle_position.y - _in_2.gui._radius - 12.5f};
+        DrawTextEx(PANEL_FONT, "in 2", in_label_position*BASE_UNIT, PANEL_FONT_SIZE*BASE_UNIT, PANEL_FONT_SPACING*BASE_UNIT, BLACK);
+
+        Vector2 gain_label_position = {_gain_1_knob->_position.x - ((MeasureTextEx(PANEL_FONT, "Gain", PANEL_FONT_SIZE, PANEL_FONT_SPACING)).x*0.5f), _gain_1_knob->_position.y - _gain_1_knob->_radius - 12.0f};
+        DrawTextEx(PANEL_FONT, "Gain", gain_label_position*BASE_UNIT, PANEL_FONT_SIZE*BASE_UNIT, PANEL_FONT_SPACING*BASE_UNIT, BLACK);
+
+        gain_label_position = {_gain_2_knob->_position.x - ((MeasureTextEx(PANEL_FONT, "Gain", PANEL_FONT_SIZE, PANEL_FONT_SPACING)).x*0.5f), _gain_2_knob->_position.y - _gain_2_knob->_radius - 12.0f};
+        DrawTextEx(PANEL_FONT, "Gain", gain_label_position*BASE_UNIT, PANEL_FONT_SIZE*BASE_UNIT, PANEL_FONT_SPACING*BASE_UNIT, BLACK);
     }
 
     patch_destination _in_1;
