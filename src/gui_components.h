@@ -74,7 +74,7 @@ public:
             _knob_angle = _max_angle;
         }
 
-        DrawCircle(_position.x*BASE_UNIT, _position.y*BASE_UNIT, _radius*BASE_UNIT, BLACK);
+        DrawCircle(_position.x*BASE_UNIT, _position.y*BASE_UNIT, _radius*BASE_UNIT, PACIFICO_BLACK);
 
         Vector2 notch = {_radius-8.0f, 0};
         notch = Vector2Rotate(notch, _knob_angle * M_PI / 180.0f);
@@ -190,39 +190,54 @@ class group {
 public:
     group(Rectangle border, std::string title) {
         //_border = border;
+        init(border);
+        _radius = 8;
 
+        _label = true;
+        
+        _title = title;
+        Vector2 title_size = MeasureTextEx(PANEL_FONT, title.c_str(), PANEL_TITLE_FONT_SIZE, PANEL_TITLE_FONT_SPACING);
+        _title_width = title_size.x;
+        float label_width = _title_width + 10;
+        float label_pos_x = (_main_rec.width/2.0f) - (label_width/2.0f);
+        _label_rectangle = {_main_rec.x+label_pos_x, _main_rec.y-5, label_width, 10};
+    }
+
+    group(Rectangle border) {
+        _offset = {3, -3};
+        init(border);
+        _label = false;
+        _radius = 2;
+    }
+
+    ~group() {}
+
+    void init(Rectangle border) {
         _main_rec = {border.x + _offset.x, border.y, border.width - _offset.x, border.height + _offset.y};
 
         _shadow = {border.x, border.y - _offset.y, border.width - _offset.x, border.height + _offset.y};
 
-
-
-
-        Vector2 title_size = MeasureTextEx(PANEL_FONT, title.c_str(), PANEL_TITLE_FONT_SIZE, PANEL_TITLE_FONT_SPACING);
-        _title_width = title_size.x;
-        float label_width = _title_width + 10;
-        float label_pos_x = (border.width/2.0f) - (label_width/2.0f);
-        _label_rectangle = {_main_rec.x+label_pos_x, _main_rec.y-5, label_width, 10};
-        _title = title;
     }
-    ~group() {}
 
     void draw() {
         
         // == Shadow rectangle ==
-        float roundness = calculate_roundness(_shadow, 8);
-        DrawRectangleRounded(_shadow*BASE_UNIT, roundness, 8, BLACK);
+        float roundness = calculate_roundness(_shadow, _radius);
+        DrawRectangleRounded(_shadow*BASE_UNIT, roundness, 8, PACIFICO_BLACK);
 
         // == Main rectangle  ==
-        roundness = calculate_roundness(_main_rec, 8);
+        roundness = calculate_roundness(_main_rec, _radius);
         DrawRectangleRounded(_main_rec*BASE_UNIT, roundness, 8, PACIFICO_GOLD);
-        DrawRectangleRoundedLinesEx(_main_rec*BASE_UNIT, roundness, 8, 1.5*BASE_UNIT, BLACK);
+        DrawRectangleRoundedLinesEx(_main_rec*BASE_UNIT, roundness, 8, 1.5*BASE_UNIT, PACIFICO_BLACK);
 
         // == Label ==
-        roundness = calculate_roundness(_label_rectangle, 2);
-        DrawRectangleRounded(_label_rectangle*BASE_UNIT, roundness, 8, WHITE);
-        DrawRectangleRoundedLinesEx(_label_rectangle*BASE_UNIT, roundness, 8, 1.5*BASE_UNIT, BLACK);
-        DrawTextEx(PANEL_FONT, _title.c_str(), {(_label_rectangle.x + 5)*BASE_UNIT, (_label_rectangle.y-2.0f)*BASE_UNIT}, PANEL_TITLE_FONT_SIZE*BASE_UNIT, PANEL_TITLE_FONT_SPACING*BASE_UNIT, BLACK); 
+        if (_label) {
+            roundness = calculate_roundness(_label_rectangle, 2);
+            DrawRectangleRounded(_label_rectangle*BASE_UNIT, roundness, 8, WHITE);
+            DrawRectangleRoundedLinesEx(_label_rectangle*BASE_UNIT, roundness, 8, 1.5*BASE_UNIT, PACIFICO_BLACK);
+            DrawTextEx(PANEL_FONT, _title.c_str(), {(_label_rectangle.x + 5)*BASE_UNIT, (_label_rectangle.y-2.0f)*BASE_UNIT}, PANEL_TITLE_FONT_SIZE*BASE_UNIT, PANEL_TITLE_FONT_SPACING*BASE_UNIT, PACIFICO_BLACK); 
+        }
+        
         
     }
 
@@ -245,6 +260,8 @@ private:
     Rectangle _label_rectangle;
     std::string _title;
     float _title_width;
+    float _radius;
+    bool _label;
 };
 
 class light {
@@ -258,7 +275,7 @@ public:
     ~light() {}
 
     void draw() {
-        DrawCircleV(_position*BASE_UNIT, _radius*BASE_UNIT, BLACK);
+        DrawCircleV(_position*BASE_UNIT, _radius*BASE_UNIT, PACIFICO_BLACK);
         Color light = _color;
         light.a *= _brightness;
         DrawCircleV(_position*BASE_UNIT, _radius*BASE_UNIT, light);

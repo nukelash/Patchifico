@@ -506,7 +506,7 @@ public:
         //_pulse_width.gui.draw();
         _retrig.gui.draw();
 
-        float symbol_scale = 0.08;
+        float symbol_scale = 0.06;
 
         Vector2 tri_wave_position = {_lfo_tri_out.gui._circle_position.x-(_tri_wave.width*symbol_scale)/2.0f, _lfo_tri_out.gui._circle_position.y+_lfo_tri_out.gui._radius+5.0f};
         DrawTextureEx(_tri_wave, tri_wave_position*BASE_UNIT, 0,  symbol_scale*BASE_UNIT, WHITE);
@@ -975,12 +975,13 @@ public:
         float gap = 15;
         for (int i = 0; i < _num_steps; i++) {
             _step_knobs[i] = new knob({_module_box.x+146.25f+radius+(i*(radius+radius+gap)), _module_box.y+50+radius}, radius, &_cv_pattern[i], -1.0f, 1.0f);
-            _step_switches[i] = new toggle_switch({_module_box.x+150+(i*52.5f), _module_box.y + 10.0f}, &_trig_pattern[i]);
+            _step_switches[i] = new toggle_switch({_module_box.x+152.5f+(i*52.5f), _module_box.y + 12.5f}, &_trig_pattern[i]);
             _lights[i] = new light({_module_box.x+146.25f+radius+(i*(radius+radius+gap)+12.5f), _module_box.y+50.0f}, 5, PACIFICO_RED);
+            _cursor_positions[i] = {_module_box.x+150+(i*52.5f), _module_box.y + 10.0f};
         }
 
-        _cv_light = new light({_cv.gui._circle_position.x + _cv.gui._radius + 7.5f, _cv.gui._circle_position.y}, 5, PACIFICO_RED);
-        _trig_light = new light({_trig.gui._circle_position.x + _trig.gui._radius + 7.5f, _trig.gui._circle_position.y}, 5, PACIFICO_RED);
+        _cv_light = new light({_cv.gui._circle_position.x + _cv.gui._radius + 12.0f, _cv.gui._circle_position.y}, 5, PACIFICO_RED);
+        _trig_light = new light({_trig.gui._circle_position.x + _trig.gui._radius + 12.0f, _trig.gui._circle_position.y}, 5, PACIFICO_RED);
 
         _group_box = new group(_module_box, "Sequencer");
 
@@ -1031,10 +1032,12 @@ public:
         for (int i= 0; i < _num_steps; i++){
             _step_knobs[i]->draw();
             _step_switches[i]->draw();
-            _lights[i]->draw();
+            //_lights[i]->draw();
         }
         _cv_light->draw();
         _trig_light->draw();
+
+        DrawRectangleRounded((Rectangle){_cursor_positions[_step].x+2.5f, _cursor_positions[_step].y+32, 25, 5}*BASE_UNIT, 0.5f, 8, PACIFICO_BROWN);
 
         Vector2 tempo_label_position = {_tempo_knob->_position.x - ((MeasureTextEx(PANEL_FONT, "Tempo", PANEL_FONT_SIZE, PANEL_FONT_SPACING)).x*0.5f), _tempo_knob->_position.y + _tempo_knob->_radius + 5.0f};
         DrawTextEx(PANEL_FONT, "Tempo", tempo_label_position*BASE_UNIT, PANEL_FONT_SIZE*BASE_UNIT, PANEL_FONT_SPACING*BASE_UNIT, BLACK);
@@ -1077,6 +1080,7 @@ private:
     light* _cv_light;
     light* _trig_light;
     parameter_map* _map;
+    Vector2 _cursor_positions[_num_steps];
 };
 
 class mixer {

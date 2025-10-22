@@ -69,11 +69,11 @@ set(DaisySP_INCLUDE_DIRS
 )
                
 
-add_executable(virtual-modular-app ${ALL_SRC} ${DaisySP_SRC})
+add_executable(Patchifico ${ALL_SRC} ${DaisySP_SRC})
 
-include_directories(virtual-modular-app ${INCLUDE_DIRS} ${DaisySP_INCLUDE_DIRS})
+include_directories(Patchifico ${INCLUDE_DIRS} ${DaisySP_INCLUDE_DIRS})
 
-target_link_libraries(virtual-modular-app PUBLIC ${CMAKE_SOURCE_DIR}/dep/raylib/lib/libraylib.a)
+target_link_libraries(Patchifico PUBLIC ${CMAKE_SOURCE_DIR}/dep/raylib/lib/libraylib.a)
 
 if(APPLE)
     set(FRAMEWORKS "-framework CoreVideo"
@@ -81,5 +81,5 @@ if(APPLE)
                    "-framework Cocoa"
                    "-framework GLUT" 
                    "-framework OpenGL")
-    target_link_libraries(virtual-modular-app PUBLIC ${FRAMEWORKS})
+    target_link_libraries(Patchifico PUBLIC ${FRAMEWORKS})
 endif()

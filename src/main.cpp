@@ -24,6 +24,7 @@ vca my_vca;
 mult my_mult;
 sequencer my_sequencer;
 patch_manager my_patch_bay;
+group* created_by_card;
 
 
 void callback(ma_device* pDevice, void* pOutput, const void* pInput, ma_uint32 frameCount)
@@ -92,7 +93,9 @@ void gui_loop() {
             my_patch_bay.draw();
 
             DrawTextureEx(logo, (Vector2){5, 0}*BASE_UNIT, 0,  0.45*BASE_UNIT, WHITE);
-            DrawTextureEx(anchor, (Vector2){350, 0}*BASE_UNIT, 0, 0.3*BASE_UNIT, WHITE);
+            created_by_card->draw();
+            DrawTextureEx(anchor, (Vector2){350, -12}*BASE_UNIT, 0, 0.34*BASE_UNIT, WHITE);
+            DrawTextEx(CERVEZA_FONT, "CREATED BY LUKE NASH", (Vector2){170, 7}*BASE_UNIT, CERVEZA_FONT_SIZE*BASE_UNIT, CERVEZA_FONT_SPACING*BASE_UNIT, PACIFICO_RED);
 
         EndDrawing();
     }
@@ -104,7 +107,7 @@ int main() {
     SetConfigFlags(FLAG_MSAA_4X_HINT);
     SetConfigFlags(FLAG_WINDOW_RESIZABLE);
     SetConfigFlags(FLAG_WINDOW_TOPMOST);
-    InitWindow(680, 497.5, "Virtual Modular Synth");
+    InitWindow(680, 497.5, "Patchifico");
     SetTargetFPS(60);
     InitVisualConfig();
     int user_data;
@@ -117,6 +120,7 @@ int main() {
     my_mult.init();
     my_sequencer.init(48000, 0.5);
     my_mixer.init();
+    created_by_card = new group({160, 5, 180, 15});
 
     my_patch_bay.add("my_osc_tri", &my_osc._audio_tri_out);
     my_patch_bay.add("my_osc_saw", &my_osc._audio_saw_out);
