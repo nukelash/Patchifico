@@ -25,6 +25,7 @@ mult my_mult;
 sequencer my_sequencer;
 patch_manager my_patch_bay;
 group* created_by_card;
+help_button my_help_button;
 
 
 void callback(ma_device* pDevice, void* pOutput, const void* pInput, ma_uint32 frameCount)
@@ -64,6 +65,7 @@ void gui_loop() {
     //Image anchor= LoadImage("/Users/lukenash/Documents/Github/synth/anchor.png")
     Texture2D logo = LoadTexture("/Users/lukenash/Documents/Github/synth/logo.png");
     Texture2D anchor = LoadTexture("/Users/lukenash/Documents/Github/synth/anchor.png");
+    Texture2D vine = LoadTexture("/Users/lukenash/Documents/Github/synth/vine.png");
     
 
     while (!WindowShouldClose())
@@ -94,8 +96,10 @@ void gui_loop() {
 
             DrawTextureEx(logo, (Vector2){5, 0}*BASE_UNIT, 0,  0.45*BASE_UNIT, WHITE);
             created_by_card->draw();
+            DrawTextureEx(vine, (Vector2){457, 60}*BASE_UNIT, 0, 0.27*BASE_UNIT, WHITE);
             DrawTextureEx(anchor, (Vector2){350, -12}*BASE_UNIT, 0, 0.34*BASE_UNIT, WHITE);
             DrawTextEx(CERVEZA_FONT, "CREATED BY LUKE NASH", (Vector2){170, 7}*BASE_UNIT, CERVEZA_FONT_SIZE*BASE_UNIT, CERVEZA_FONT_SPACING*BASE_UNIT, PACIFICO_RED);
+            my_help_button.draw();
 
         EndDrawing();
     }
@@ -121,6 +125,7 @@ int main() {
     my_sequencer.init(48000, 0.5);
     my_mixer.init();
     created_by_card = new group({160, 5, 180, 15});
+    my_help_button.init();
 
     my_patch_bay.add("my_osc_tri", &my_osc._audio_tri_out);
     my_patch_bay.add("my_osc_saw", &my_osc._audio_saw_out);

@@ -186,6 +186,130 @@ private:
     int counter = 7;
 };
 
+class help_button{
+public:
+    help_button() {}
+    ~help_button() {}
+
+    void init(){
+        Vector2 text_size = MeasureTextEx(PANEL_FONT, "Help/Settings", 10, PANEL_TITLE_FONT_SPACING);
+        float horizontal_buffer = (_help_button_module_box.width - text_size.x)/ 2.0f;
+        float vertical_buffer =(_help_button_module_box.height - text_size.y)/2.0f;
+        _text_position = {_help_button_module_box.x+horizontal_buffer, _help_button_module_box.y+vertical_buffer};
+
+        _patch_image = LoadTexture("/Users/lukenash/Documents/Github/synth/instructions1.png");
+        _knob_image = LoadTexture("/Users/lukenash/Documents/Github/synth/instructions2.png");
+    }
+
+    void draw() {
+
+        float roundness = calculate_roundness(_help_button_module_box, 3);
+
+        // == shadow ==
+        DrawRectangleRounded((Rectangle){_help_button_module_box.x - 3, _help_button_module_box.y + 3, _help_button_module_box.width, _help_button_module_box.height}*BASE_UNIT, roundness, 8, BLACK);
+
+        // == front ==
+        DrawRectangleRounded(_help_button_module_box*BASE_UNIT, roundness, 8, WHITE);
+        DrawRectangleRoundedLinesEx(_help_button_module_box*BASE_UNIT, roundness, 8, 1.5*BASE_UNIT, PACIFICO_BLACK);
+        DrawTextEx(PANEL_FONT, "Help/Settings", _text_position*BASE_UNIT, 10*BASE_UNIT, PANEL_TITLE_FONT_SPACING*BASE_UNIT, PACIFICO_BLACK);
+
+        if(IsMouseButtonPressed(MOUSE_BUTTON_LEFT) && CheckCollisionPointRec(GetMousePosition(), _help_button_module_box*BASE_UNIT)) {
+            _menu_open = true;
+        }
+
+        if (_menu_open) {
+            draw_menu();
+        }
+         
+    }
+
+    void draw_menu() {
+        
+        // == background ==
+        float top_bar_height = 20;
+        float roundness = calculate_roundness(_menu_module_box, 5);
+        DrawRectangleRounded(_menu_module_box*BASE_UNIT, roundness, 8, WHITE);
+        Rectangle top_bar = {_menu_module_box.x, _menu_module_box.y, _menu_module_box.width, 40};
+        Rectangle cover = {_menu_module_box.x, _menu_module_box.y + top_bar_height, _menu_module_box.width, 40};
+        roundness = calculate_roundness(top_bar, 5);
+        DrawRectangleRounded(top_bar, roundness, 8, PACIFICO_BROWN);
+        DrawRectanglePro(cover, {0,0}, 0, WHITE);
+
+        roundness = calculate_roundness(_menu_module_box, 5);
+        DrawRectangleRoundedLinesEx(_menu_module_box*BASE_UNIT, roundness, 8, 1.5*BASE_UNIT, PACIFICO_BLACK);
+        DrawLineEx({_menu_module_box.x, _menu_module_box.y+top_bar_height}, {_menu_module_box.x+_menu_module_box.width, _menu_module_box.y+top_bar_height}, 1.5*BASE_UNIT, PACIFICO_BLACK);
+
+
+        Vector2 line_start, line_end;
+
+        // == instructions ==
+        line_start = {_menu_module_box.x + (_menu_module_box.width*0.5f), _menu_module_box.y + top_bar_height + 30};
+        line_end = {_menu_module_box.x + (_menu_module_box.width*0.5f), line_start.y + 55};
+        DrawLineEx(line_start, line_end, 3*BASE_UNIT, PACIFICO_BLACK);
+        float image_scale = 0.3f;
+        DrawTextureEx(_patch_image, {line_start.x - (_patch_image.width*image_scale) - 40, _menu_module_box.y + top_bar_height + 20}, 0, image_scale, WHITE);
+        DrawTextureEx(_knob_image, {line_start.x + 40, _menu_module_box.y + top_bar_height + 20}, 0, image_scale, WHITE);
+
+        Vector2 text_size = MeasureTextEx(PANEL_FONT, _instructions_line_1, 12, PANEL_FONT_SPACING);
+        Vector2 text_position = {_menu_module_box.x + (_menu_module_box.width*0.5f) - (text_size.x*0.5f), _menu_module_box.y + 120};
+        DrawTextEx(PANEL_FONT, _instructions_line_1, text_position, 12, PANEL_FONT_SPACING, PACIFICO_BLACK);
+
+        text_size = MeasureTextEx(PANEL_FONT, _instructions_line_2, 12, PANEL_FONT_SPACING);
+        text_position = {_menu_module_box.x + (_menu_module_box.width*0.5f) - (text_size.x*0.5f), _menu_module_box.y + 135};
+        DrawTextEx(PANEL_FONT, _instructions_line_2, text_position, 12, PANEL_FONT_SPACING, PACIFICO_BLACK);
+
+
+        // == divider line ==
+        float buffer = 10;
+        line_start = {_menu_module_box.x + buffer, _menu_module_box.y + (_menu_module_box.height * 0.75f)};
+        line_end = {_menu_module_box.x + _menu_module_box.width - buffer, _menu_module_box.y + (_menu_module_box.height * 0.75f)};
+        DrawLineEx(line_start*BASE_UNIT, line_end*BASE_UNIT, 3*BASE_UNIT, PACIFICO_BLACK);
+        
+
+        // == audio device selection ==
+        DrawTextEx(PANEL_FONT,"Audio Device:", {line_start.x + buffer, line_start.y + 10}, 12, PANEL_FONT_SPACING, PACIFICO_BLACK);
+        text_size = MeasureTextEx(PANEL_FONT,"Audio Device:", 12, PANEL_FONT_SPACING);
+        DrawRectangleRounded({line_start.x + buffer + text_size.x + 5, line_start.y + 10, line_end.x - (line_start.x + buffer + text_size.x + 5), text_size.y}, 0.1, 8, WHITE);
+        DrawRectangleRoundedLinesEx({line_start.x + buffer + text_size.x + 5, line_start.y + 10, line_end.x - (line_start.x + (2*buffer) + text_size.x + 5), text_size.y}, 0.1, 8, 1.5, PACIFICO_BLACK);
+
+        // == done button ==
+        text_size = MeasureTextEx(PANEL_FONT, "Done", 12, PANEL_FONT_SPACING);
+        float height = text_size.y + 2;
+        float width = text_size.x + 6;
+        Rectangle done_button = {_menu_module_box.x + (2*buffer), _menu_module_box.y + _menu_module_box.height - buffer - height, width, height};
+        roundness = calculate_roundness(done_button, 3);
+        DrawRectangleRounded(done_button, roundness, 8, PACIFICO_BROWN);
+        DrawRectangleRoundedLinesEx(done_button, roundness, 8, 1.1f*BASE_UNIT, PACIFICO_BLACK);
+        DrawTextEx(PANEL_FONT, "Done", {done_button.x + 3, done_button.y + 1}, 12, PANEL_FONT_SPACING, PACIFICO_BLACK);
+    }
+
+    bool _menu_open = 0; // will need to poll this before checking collisions on other modules
+
+private:
+
+    float calculate_roundness(Rectangle rec, float radius) {
+        // roundness in raylib changes based on rectangle dimensions, this will solve for that based on rounded corner pixel radius
+
+        // Calculate corner radius
+        //float radius = (rec.width > rec.height)? (rec.height*roundness)/2 : (rec.width*roundness)/2;
+
+        float roundness = (rec.width > rec.height)? (2.0f*radius)/rec.height : (2.0f*radius)/rec.width;
+        return roundness;
+    }
+
+    Rectangle _help_button_module_box = {595, 5, 75, 15};
+    Rectangle _menu_module_box = {165, 120, 350, 210};
+    Vector2 _text_position;
+
+    Texture2D _patch_image;
+    Texture2D _knob_image;
+
+    // click and drag to place patch cables connecting inputs and outputs. Also click and drag to turn knobs.
+    const char* _instructions_line_1 = "Click and drag to place patch cables connecting inputs ";
+    const char* _instructions_line_2 = "and outputs. Also click and drag to turn knobs.";
+
+};
+
 class group {
 public:
     group(Rectangle border, std::string title) {
