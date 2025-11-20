@@ -37,6 +37,7 @@ ma_interface::ma_interface(void* user_data, void (*callback) (ma_device *, void 
 }
 
 ma_interface::~ma_interface(){
+    ma_context_uninit(&_context);
     ma_device_uninit(&_device);
 }
 
@@ -85,7 +86,46 @@ int ma_interface::select_devices() {
 
     _device_config.playback.pDeviceID = &pPlaybackInfos[playback_id].id;
 
-    ma_context_uninit(&_context);
+    //ma_context_uninit(&_context);
     
     return 0;
+}
+
+void ma_interface::get_device_info(ma_device_info*** pinfo, ma_uint32* count) {
+
+    ma_device_info* pCaptureInfos;
+    ma_uint32 captureCount;
+
+    ma_result result = ma_context_get_devices(&_context, *pinfo, count, &pCaptureInfos, &captureCount);
+    if (result != MA_SUCCESS) {
+            printf("error getting devices: %d", result);
+            return;
+        }
+    printf("success\n");
+    printf("%s\n", (*pinfo)[0]->name);
+}
+
+ std::string ma_interface::current_device_name() {
+    ma_device_info* pPlaybackInfos;
+    ma_uint32 playback_id;
+    ma_device_info* pCaptureInfos;
+    int capture_id;
+    
+    ma_uint32 playbackCount;
+    ma_uint32 captureCount;
+    if (ma_context_get_devices(&_context, &pPlaybackInfos, &playbackCount, &pCaptureInfos, &captureCount) != MA_SUCCESS) {
+        printf("error getting devices");
+        return std::string("bad!");
+    }
+
+    // Loop over each device info
+    for (ma_uint32 iDevice = 0; iDevice < playbackCount; iDevice += 1) {
+        printf("%d - %s\n", iDevice, pPlaybackInfos[iDevice].name);
+        if (&pPlaybackInfos[iDevice].id == _device_config.playback.pDeviceID) {
+            printf("returning %s", pPlaybackInfos[iDevice].name);
+            return std::string(pPlaybackInfos[iDevice].name);
+        }
+
+    }
+    printf("didn't find current device\n");
 }

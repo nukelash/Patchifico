@@ -1,6 +1,7 @@
 #pragma once
 
 #include <stdio.h>
+#include <string>
 #include <stdexcept>
 #include "miniaudio.h"
 
@@ -11,6 +12,8 @@ public:
 
     int start();
     int select_devices();
+    void get_device_info(ma_device_info*** info, ma_uint32* count);
+    std::string current_device_name();
 
 private:
     ma_context _context;

@@ -191,7 +191,8 @@ public:
     help_button() {}
     ~help_button() {}
 
-    void init(){
+    void init(ma_interface* ma){
+        _ma = ma;
         Vector2 text_size = MeasureTextEx(PANEL_FONT, "Help/Settings", 10, PANEL_TITLE_FONT_SPACING);
         float horizontal_buffer = (_help_button_module_box.width - text_size.x)/ 2.0f;
         float vertical_buffer =(_help_button_module_box.height - text_size.y)/2.0f;
@@ -199,6 +200,9 @@ public:
 
         _patch_image = LoadTexture("/Users/lukenash/Documents/Github/synth/instructions1.png");
         _knob_image = LoadTexture("/Users/lukenash/Documents/Github/synth/instructions2.png");
+
+        _ma->get_device_info(&_p_device_info, &_device_count);
+
     }
 
     void draw() {
@@ -214,7 +218,7 @@ public:
         DrawTextEx(PANEL_FONT, "Help/Settings", _text_position*BASE_UNIT, 10*BASE_UNIT, PANEL_TITLE_FONT_SPACING*BASE_UNIT, PACIFICO_BLACK);
 
         if(IsMouseButtonPressed(MOUSE_BUTTON_LEFT) && CheckCollisionPointRec(GetMousePosition(), _help_button_module_box*BASE_UNIT)) {
-            _menu_open = true;
+            _menu_open = !_menu_open;
         }
 
         if (_menu_open) {
@@ -269,8 +273,20 @@ public:
         // == audio device selection ==
         DrawTextEx(PANEL_FONT,"Audio Device:", {line_start.x + buffer, line_start.y + 10}, 12, PANEL_FONT_SPACING, PACIFICO_BLACK);
         text_size = MeasureTextEx(PANEL_FONT,"Audio Device:", 12, PANEL_FONT_SPACING);
-        DrawRectangleRounded({line_start.x + buffer + text_size.x + 5, line_start.y + 10, line_end.x - (line_start.x + buffer + text_size.x + 5), text_size.y}, 0.1, 8, WHITE);
-        DrawRectangleRoundedLinesEx({line_start.x + buffer + text_size.x + 5, line_start.y + 10, line_end.x - (line_start.x + (2*buffer) + text_size.x + 5), text_size.y}, 0.1, 8, 1.5, PACIFICO_BLACK);
+        Rectangle device_box = {line_start.x + buffer + text_size.x + 5, line_start.y + 10, line_end.x - (line_start.x + (2*buffer) + text_size.x + 5), text_size.y};
+        DrawRectangleRounded(device_box, 0.1, 8, WHITE);
+        DrawRectangleRoundedLinesEx(device_box, 0.1, 8, 1.5, PACIFICO_BLACK);
+        DrawText(_ma->current_device_name().c_str(), device_box.x, device_box.y, 14, BLACK);
+
+        Vector2 mouse_position = GetMousePosition();
+        if(IsMouseButtonPressed(MOUSE_BUTTON_LEFT) && CheckCollisionPointRec(mouse_position, device_box)) {
+            _dropdown_open = !_dropdown_open;
+            _ma->get_device_info(&_p_device_info, &_device_count);
+        }
+
+        if(_dropdown_open) {
+            draw_dropdown(device_box);
+        }
 
         // == done button ==
         text_size = MeasureTextEx(PANEL_FONT, "Done", 12, PANEL_FONT_SPACING);
@@ -283,7 +299,24 @@ public:
         DrawTextEx(PANEL_FONT, "Done", {done_button.x + 3, done_button.y + 1}, 12, PANEL_FONT_SPACING, PACIFICO_BLACK);
     }
 
+    void draw_dropdown(Rectangle device_box) {
+
+        for(ma_uint32 i = 0; i < _device_count; i++) {
+            device_box.y += device_box.height;
+            DrawRectangleRec(device_box, WHITE);
+            DrawRectangleLinesEx(device_box, 1, PACIFICO_BLACK);
+            DrawText(_device_info[i].name, device_box.x, device_box.y, 12, BLACK);
+
+            if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT) && CheckCollisionPointRec(GetMousePosition(), device_box)) {
+
+            }
+        }
+
+
+    }
+
     bool _menu_open = 0; // will need to poll this before checking collisions on other modules
+    bool _dropdown_open =  0;
 
 private:
 
@@ -297,6 +330,11 @@ private:
         return roundness;
     }
 
+    ma_interface* _ma;
+    ma_device_info* _device_info;
+    ma_device_info** _p_device_info = &_device_info;
+    ma_uint32 _device_count;
+
     Rectangle _help_button_module_box = {595, 5, 75, 15};
     Rectangle _menu_module_box = {165, 120, 350, 210};
     Vector2 _text_position;
@@ -308,7 +346,14 @@ private:
     const char* _instructions_line_1 = "Click and drag to place patch cables connecting inputs ";
     const char* _instructions_line_2 = "and outputs. Also click and drag to turn knobs.";
 
+    std::string _current_device_name;
+    int _current_device_id;
+
 };
+
+bool DrawDropDown(Rectangle rect, bool* open, ma_device_info* device_info, int device_count) {
+
+}
 
 class group {
 public:

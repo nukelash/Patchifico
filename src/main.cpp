@@ -27,6 +27,8 @@ patch_manager my_patch_bay;
 group* created_by_card;
 help_button my_help_button;
 
+ma_interface* ma;
+
 
 void callback(ma_device* pDevice, void* pOutput, const void* pInput, ma_uint32 frameCount)
 {
@@ -125,7 +127,6 @@ int main() {
     my_sequencer.init(48000, 0.5);
     my_mixer.init();
     created_by_card = new group({160, 5, 180, 15});
-    my_help_button.init();
 
     my_patch_bay.add("my_osc_tri", &my_osc._audio_tri_out);
     my_patch_bay.add("my_osc_saw", &my_osc._audio_saw_out);
@@ -164,8 +165,10 @@ int main() {
     my_patch_bay.add("my_mixer_in_1", &my_mixer._in_1);
     my_patch_bay.add("my_mixer_in_2", &my_mixer._in_2);
 
-    ma_interface* ma = new ma_interface(&user_data, callback);
+    ma = new ma_interface(&user_data, callback);
     ma->start();
+
+    my_help_button.init(ma); //need to init help button AFTER initializing ma
 
     gui_loop();
 }
