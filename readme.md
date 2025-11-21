@@ -2,7 +2,7 @@
 
 Patchifico is a virtual modular synthesizer themed around Pacifico beer. The patchable interface is inspired by VCV Rack, and the synth engine (in particular the sequencer) is inspired by the Moog DFAM.
 
-<img src="/Users/lukenash/Documents/Github/synth/demo_shot.png"/>
+<img src="/Users/lukenash/Documents/Github/synth/demo_screenshot.png"/>
 
 ## Dependencies
 This project makes use of raylib and miniaudio, two absolutely wonderful libraries.
