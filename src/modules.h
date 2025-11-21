@@ -995,6 +995,12 @@ public:
 
         int new_step = _metronome.Process();
         
+        // This, along with setting _trig.value false below, forces trig.value to be false
+        // for a single sample between steps, so that the envelope is properly triggered.
+        if (_trig_reset) {
+            _trig.value = _trig_pattern[_step];
+            _trig_reset = false;
+        }
 
         if(new_step) {
             _lights[_step]->set_brightness(0.2);
@@ -1004,7 +1010,8 @@ public:
                 _step = 0;
             }
 
-            _trig.value = _trig_pattern[_step];
+            _trig_reset = true;
+            _trig.value = false;
             _cv.value = _cv_pattern[_step];
 
             _trig_light->set_brightness(_trig.value);
@@ -1069,6 +1076,7 @@ private:
     bool _trig_pattern[_num_steps] = {0};
     float _cv_pattern[_num_steps] = {0.0f};
     float _tempo;
+    bool _trig_reset = false;
 
     Rectangle _module_box;
 
