@@ -276,16 +276,16 @@ public:
         Rectangle device_box = {line_start.x + buffer + text_size.x + 5, line_start.y + 10, line_end.x - (line_start.x + (2*buffer) + text_size.x + 5), text_size.y};
         DrawRectangleRounded(device_box, 0.1, 8, WHITE);
         DrawRectangleRoundedLinesEx(device_box, 0.1, 8, 1.5, PACIFICO_BLACK);
-        DrawText(_ma->current_device_name().c_str(), device_box.x, device_box.y, 14, BLACK);
+        DrawTextEx(PANEL_FONT, _ma->current_device_name().c_str(), {device_box.x+5, device_box.y-1}, 14, PANEL_FONT_SPACING, BLACK);
+
+        if(_dropdown_open) {
+            draw_dropdown(device_box);
+        }
 
         Vector2 mouse_position = GetMousePosition();
         if(IsMouseButtonPressed(MOUSE_BUTTON_LEFT) && CheckCollisionPointRec(mouse_position, device_box)) {
             _dropdown_open = !_dropdown_open;
             _ma->get_device_info(&_p_device_info, &_device_count);
-        }
-
-        if(_dropdown_open) {
-            draw_dropdown(device_box);
         }
 
         // == done button ==
@@ -297,22 +297,31 @@ public:
         DrawRectangleRounded(done_button, roundness, 8, PACIFICO_BROWN);
         DrawRectangleRoundedLinesEx(done_button, roundness, 8, 1.1f*BASE_UNIT, PACIFICO_BLACK);
         DrawTextEx(PANEL_FONT, "Done", {done_button.x + 3, done_button.y + 1}, 12, PANEL_FONT_SPACING, PACIFICO_BLACK);
+
+        if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT) && CheckCollisionPointRec(mouse_position, done_button)) {
+            _menu_open = false;
+        }
     }
 
     void draw_dropdown(Rectangle device_box) {
-
+        
+        float line_thickness = 1.5;
         for(ma_uint32 i = 0; i < _device_count; i++) {
-            device_box.y += device_box.height;
+            device_box.y += device_box.height + line_thickness;
             DrawRectangleRec(device_box, WHITE);
-            DrawRectangleLinesEx(device_box, 1, PACIFICO_BLACK);
-            DrawText(_device_info[i].name, device_box.x, device_box.y, 12, BLACK);
+            DrawRectangleRoundedLinesEx(device_box, 0.1, 8, line_thickness, PACIFICO_BLACK);
+            DrawTextEx(PANEL_FONT, _device_info[i].name, {device_box.x+5, device_box.y}, 12, PANEL_FONT_SPACING, BLACK);
 
             if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT) && CheckCollisionPointRec(GetMousePosition(), device_box)) {
-
+                _ma->stop();
+                _ma->set_device(&_device_info[i].id);
+                _ma->start();
             }
         }
 
-
+        if(IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) {
+            _dropdown_open = false;
+        }
     }
 
     bool _menu_open = 0; // will need to poll this before checking collisions on other modules

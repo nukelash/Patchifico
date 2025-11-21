@@ -10,8 +10,9 @@ public:
     ma_interface(void* user_data, void (*callback) (ma_device *, void *, const void *, unsigned int));
     ~ma_interface();
 
-    int start();
-    int select_devices();
+    void start();
+    void stop();
+    void set_device(ma_device_id* id);
     void get_device_info(ma_device_info*** info, ma_uint32* count);
     std::string current_device_name();
 
