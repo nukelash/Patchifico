@@ -236,12 +236,12 @@ public:
         Rectangle top_bar = {_menu_module_box.x, _menu_module_box.y, _menu_module_box.width, 40};
         Rectangle cover = {_menu_module_box.x, _menu_module_box.y + top_bar_height, _menu_module_box.width, 40};
         roundness = calculate_roundness(top_bar, 5);
-        DrawRectangleRounded(top_bar, roundness, 8, PACIFICO_BROWN);
-        DrawRectanglePro(cover, {0,0}, 0, WHITE);
+        DrawRectangleRounded(top_bar*BASE_UNIT, roundness, 8, PACIFICO_BROWN);
+        DrawRectanglePro(cover*BASE_UNIT, {0,0}, 0, WHITE);
 
         roundness = calculate_roundness(_menu_module_box, 5);
         DrawRectangleRoundedLinesEx(_menu_module_box*BASE_UNIT, roundness, 8, 1.5*BASE_UNIT, PACIFICO_BLACK);
-        DrawLineEx({_menu_module_box.x, _menu_module_box.y+top_bar_height}, {_menu_module_box.x+_menu_module_box.width, _menu_module_box.y+top_bar_height}, 1.5*BASE_UNIT, PACIFICO_BLACK);
+        DrawLineEx((Vector2){_menu_module_box.x, _menu_module_box.y+top_bar_height}*BASE_UNIT, (Vector2){_menu_module_box.x+_menu_module_box.width, _menu_module_box.y+top_bar_height}*BASE_UNIT, 1.5*BASE_UNIT, PACIFICO_BLACK);
 
 
         Vector2 line_start, line_end;
@@ -249,18 +249,18 @@ public:
         // == instructions ==
         line_start = {_menu_module_box.x + (_menu_module_box.width*0.5f), _menu_module_box.y + top_bar_height + 30};
         line_end = {_menu_module_box.x + (_menu_module_box.width*0.5f), line_start.y + 55};
-        DrawLineEx(line_start, line_end, 3*BASE_UNIT, PACIFICO_BLACK);
+        DrawLineEx(line_start*BASE_UNIT, line_end*BASE_UNIT, 3*BASE_UNIT, PACIFICO_BLACK);
         float image_scale = 0.3f;
-        DrawTextureEx(_patch_image, {line_start.x - (_patch_image.width*image_scale) - 40, _menu_module_box.y + top_bar_height + 20}, 0, image_scale, WHITE);
-        DrawTextureEx(_knob_image, {line_start.x + 40, _menu_module_box.y + top_bar_height + 20}, 0, image_scale, WHITE);
+        DrawTextureEx(_patch_image, (Vector2){line_start.x - (_patch_image.width*image_scale) - 40, _menu_module_box.y + top_bar_height + 20}*BASE_UNIT, 0, image_scale*BASE_UNIT, WHITE);
+        DrawTextureEx(_knob_image, (Vector2){line_start.x + 40, _menu_module_box.y + top_bar_height + 20}*BASE_UNIT, 0, image_scale*BASE_UNIT, WHITE);
 
         Vector2 text_size = MeasureTextEx(PANEL_FONT, _instructions_line_1, 12, PANEL_FONT_SPACING);
         Vector2 text_position = {_menu_module_box.x + (_menu_module_box.width*0.5f) - (text_size.x*0.5f), _menu_module_box.y + 120};
-        DrawTextEx(PANEL_FONT, _instructions_line_1, text_position, 12, PANEL_FONT_SPACING, PACIFICO_BLACK);
+        DrawTextEx(PANEL_FONT, _instructions_line_1, text_position*BASE_UNIT, 12*BASE_UNIT, PANEL_FONT_SPACING*BASE_UNIT, PACIFICO_BLACK);
 
         text_size = MeasureTextEx(PANEL_FONT, _instructions_line_2, 12, PANEL_FONT_SPACING);
         text_position = {_menu_module_box.x + (_menu_module_box.width*0.5f) - (text_size.x*0.5f), _menu_module_box.y + 135};
-        DrawTextEx(PANEL_FONT, _instructions_line_2, text_position, 12, PANEL_FONT_SPACING, PACIFICO_BLACK);
+        DrawTextEx(PANEL_FONT, _instructions_line_2, text_position*BASE_UNIT, 12*BASE_UNIT, PANEL_FONT_SPACING*BASE_UNIT, PACIFICO_BLACK);
 
 
         // == divider line ==
@@ -271,19 +271,19 @@ public:
         
 
         // == audio device selection ==
-        DrawTextEx(PANEL_FONT,"Audio Device:", {line_start.x + buffer, line_start.y + 10}, 12, PANEL_FONT_SPACING, PACIFICO_BLACK);
+        DrawTextEx(PANEL_FONT,"Audio Device:", (Vector2){line_start.x + buffer, line_start.y + 10}*BASE_UNIT, 12*BASE_UNIT, PANEL_FONT_SPACING*BASE_UNIT, PACIFICO_BLACK);
         text_size = MeasureTextEx(PANEL_FONT,"Audio Device:", 12, PANEL_FONT_SPACING);
         Rectangle device_box = {line_start.x + buffer + text_size.x + 5, line_start.y + 10, line_end.x - (line_start.x + (2*buffer) + text_size.x + 5), text_size.y};
-        DrawRectangleRounded(device_box, 0.1, 8, WHITE);
-        DrawRectangleRoundedLinesEx(device_box, 0.1, 8, 1.5, PACIFICO_BLACK);
-        DrawTextEx(PANEL_FONT, _ma->current_device_name().c_str(), {device_box.x+5, device_box.y-1}, 14, PANEL_FONT_SPACING, BLACK);
+        DrawRectangleRounded(device_box*BASE_UNIT, 0.1, 8, WHITE);
+        DrawRectangleRoundedLinesEx(device_box*BASE_UNIT, 0.1, 8, 1.5, PACIFICO_BLACK);
+        DrawTextEx(PANEL_FONT, _ma->current_device_name().c_str(), (Vector2){device_box.x+5, device_box.y-1}*BASE_UNIT, 14*BASE_UNIT, PANEL_FONT_SPACING*BASE_UNIT, BLACK);
 
         if(_dropdown_open) {
             draw_dropdown(device_box);
         }
 
         Vector2 mouse_position = GetMousePosition();
-        if(IsMouseButtonPressed(MOUSE_BUTTON_LEFT) && CheckCollisionPointRec(mouse_position, device_box)) {
+        if(IsMouseButtonPressed(MOUSE_BUTTON_LEFT) && CheckCollisionPointRec(mouse_position, device_box*BASE_UNIT)) {
             _dropdown_open = !_dropdown_open;
             _ma->get_device_info(&_p_device_info, &_device_count);
         }
@@ -294,11 +294,11 @@ public:
         float width = text_size.x + 6;
         Rectangle done_button = {_menu_module_box.x + (2*buffer), _menu_module_box.y + _menu_module_box.height - buffer - height, width, height};
         roundness = calculate_roundness(done_button, 3);
-        DrawRectangleRounded(done_button, roundness, 8, PACIFICO_BROWN);
-        DrawRectangleRoundedLinesEx(done_button, roundness, 8, 1.1f*BASE_UNIT, PACIFICO_BLACK);
-        DrawTextEx(PANEL_FONT, "Done", {done_button.x + 3, done_button.y + 1}, 12, PANEL_FONT_SPACING, PACIFICO_BLACK);
+        DrawRectangleRounded(done_button*BASE_UNIT, roundness, 8, PACIFICO_BROWN);
+        DrawRectangleRoundedLinesEx(done_button*BASE_UNIT, roundness, 8, 1.1f*BASE_UNIT, PACIFICO_BLACK);
+        DrawTextEx(PANEL_FONT, "Done", (Vector2){done_button.x + 3, done_button.y + 1}*BASE_UNIT, 12*BASE_UNIT, PANEL_FONT_SPACING*BASE_UNIT, PACIFICO_BLACK);
 
-        if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT) && CheckCollisionPointRec(mouse_position, done_button)) {
+        if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT) && CheckCollisionPointRec(mouse_position, done_button*BASE_UNIT)) {
             _menu_open = false;
         }
     }
@@ -308,11 +308,11 @@ public:
         float line_thickness = 1.5;
         for(ma_uint32 i = 0; i < _device_count; i++) {
             device_box.y += device_box.height + line_thickness;
-            DrawRectangleRec(device_box, WHITE);
-            DrawRectangleRoundedLinesEx(device_box, 0.1, 8, line_thickness, PACIFICO_BLACK);
-            DrawTextEx(PANEL_FONT, _device_info[i].name, {device_box.x+5, device_box.y}, 12, PANEL_FONT_SPACING, BLACK);
+            DrawRectangleRec(device_box*BASE_UNIT, WHITE);
+            DrawRectangleRoundedLinesEx(device_box*BASE_UNIT, 0.1, 8, line_thickness*BASE_UNIT, PACIFICO_BLACK);
+            DrawTextEx(PANEL_FONT, _device_info[i].name, (Vector2){device_box.x+5, device_box.y}*BASE_UNIT, 12*BASE_UNIT, PANEL_FONT_SPACING*BASE_UNIT, BLACK);
 
-            if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT) && CheckCollisionPointRec(GetMousePosition(), device_box)) {
+            if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT) && CheckCollisionPointRec(GetMousePosition(), device_box*BASE_UNIT)) {
                 _ma->stop();
                 _ma->set_device(&_device_info[i].id);
                 _ma->start();
