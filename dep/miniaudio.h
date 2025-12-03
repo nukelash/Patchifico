@@ -18669,13 +18669,15 @@ static void ma_device__on_notification_rerouted(ma_device* pDevice)
 }
 #endif
 
-#if defined(MA_EMSCRIPTEN)
-EMSCRIPTEN_KEEPALIVE
+//#if defined(MA_EMSCRIPTEN)
+//EMSCRIPTEN_KEEPALIVE
+extern "C" {
 void ma_device__on_notification_unlocked(ma_device* pDevice)
 {
     ma_device__on_notification(ma_device_notification_init(pDevice, ma_device_notification_type_unlocked));
 }
-#endif
+}
+//#endif
 
 
 static void ma_device__on_data_inner(ma_device* pDevice, void* pFramesOut, const void* pFramesIn, ma_uint32 frameCount)
@@ -41642,6 +41644,11 @@ MA_API ma_device_config ma_device_config_init(ma_device_type deviceType)
 
 MA_API ma_result ma_device_init(ma_context* pContext, const ma_device_config* pConfig, ma_device* pDevice)
 {
+#if defined(MA_APPLE)
+    printf("!! APPLE !!\n");
+#elif defined(MA_EMSCRIPTEN)
+    printf("!! EMSCRIPTEN !!\n");
+#endif
     ma_result result;
     ma_device_descriptor descriptorPlayback;
     ma_device_descriptor descriptorCapture;

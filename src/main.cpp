@@ -10,6 +10,12 @@
 #include "modules.h"
 #include "gui_components.h"
 
+// #define PLATFORM_WEB
+
+// #if defined(PLATFORM_WEB)
+//     #include <emscripten/emscripten.h>
+// #endif
+
 
 // static daisysp::OnePole flt;
 // static daisysp::Oscillator osc, lfo;
@@ -29,22 +35,28 @@ help_button my_help_button;
 
 ma_interface* ma;
 
+Font title_font;
+Texture2D logo;
+Texture2D anchor;
+Texture2D vine;
+
+bool audio_initialized = false;
 
 void callback(ma_device* pDevice, void* pOutput, const void* pInput, ma_uint32 frameCount)
 {
-    float* input = (float*) pInput;
+    // float* input = (float*) pInput;
     float* out = (float*) pOutput;
 
     //access userdata in the callback:
-    pDevice->pUserData;
+    // pDevice->pUserData;
 
-    float sample;
+    // float sample;
 
     for (int i = 0; i < frameCount; i++) {
 
         my_osc.process();
-        my_lfo.process();
-        my_filt.process();
+        my_lfo.process(); //problems if more than just my_osc
+        my_filt.process(); 
         my_envelope.process();
         my_vca.process();
         my_mult.process();
@@ -54,32 +66,13 @@ void callback(ma_device* pDevice, void* pOutput, const void* pInput, ma_uint32 f
     }
 }
 
-void gui_loop() {
-    Font title_font = LoadFont("/Users/lukenash/Downloads/pacifico-beer.otf/pacifico-beer.otf");
+void update_draw_frame() {
 
-    bool showMessageBox = false;
-    float value;
-
-    int x = 60;
-    int y = 60;
-
-    //Image title = LoadImage("/Users/lukenash/Documents/Github/synth/logo.png");
-    //Image anchor= LoadImage("/Users/lukenash/Documents/Github/synth/anchor.png")
-    Texture2D logo = LoadTexture("/Users/lukenash/Documents/Github/synth/logo.png");
-    Texture2D anchor = LoadTexture("/Users/lukenash/Documents/Github/synth/anchor.png");
-    Texture2D vine = LoadTexture("/Users/lukenash/Documents/Github/synth/vine.png");
-    
-
-    while (!WindowShouldClose())
-    {
-        // Draw
-        //----------------------------------------------------------------------------------
-
-        if(IsWindowResized()){
-            float ratio = 680.0f / 497.5f;
-            SetWindowSize(GetScreenWidth(), GetScreenWidth() / ratio);
-            BASE_UNIT = GetScreenWidth() / 680.0f;
-        }
+    // if(IsWindowResized()){
+    //         float ratio = 680.0f / 497.5f;
+    //         SetWindowSize(GetScreenWidth(), GetScreenWidth() / ratio);
+    //         BASE_UNIT = GetScreenWidth() / 680.0f;
+    //     }
 
         BeginDrawing();
             ClearBackground(PACIFICO_BROWN);
@@ -104,7 +97,44 @@ void gui_loop() {
             my_help_button.draw();
 
         EndDrawing();
+}
+
+void gui_loop() {
+    //title_font = LoadFont("/Users/lukenash/Downloads/pacifico-beer.otf/pacifico-beer.otf");
+
+    bool showMessageBox = false;
+    float value;
+
+    int x = 60;
+    int y = 60;
+
+    //Image title = LoadImage("/Users/lukenash/Documents/Github/synth/logo.png");
+    //Image anchor= LoadImage("/Users/lukenash/Documents/Github/synth/anchor.png")
+    logo = LoadTexture("/Users/lukenash/Documents/Github/synth/resources/logo.png");
+    anchor = LoadTexture("/Users/lukenash/Documents/Github/synth/resources/anchor.png");
+    vine = LoadTexture("/Users/lukenash/Documents/Github/synth/resources/vine.png");
+    printf("2\n");
+    
+#if defined(PLATFORM_WEB)
+    emscripten_set_main_loop(update_draw_frame, 0, 1);
+#else
+    SetTargetFPS(60);
+    while (!WindowShouldClose())
+    {
+        // Draw
+        //----------------------------------------------------------------------------------
+
+        if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT) && (!audio_initialized)) {
+            ma->start();
+            audio_initialized = true;
+        }
+        
+
+        update_draw_frame();
+
+        
     }
+#endif
 
     CloseWindow();
 }
@@ -114,7 +144,6 @@ int main() {
     SetConfigFlags(FLAG_WINDOW_RESIZABLE);
     SetConfigFlags(FLAG_WINDOW_TOPMOST);
     InitWindow(680, 497.5, "Patchifico");
-    SetTargetFPS(60);
     InitVisualConfig();
     int user_data;
 
@@ -166,7 +195,6 @@ int main() {
     my_patch_bay.add("my_mixer_in_2", &my_mixer._in_2);
 
     ma = new ma_interface(&user_data, callback);
-    ma->start();
 
     my_help_button.init(ma); //need to init help button AFTER initializing ma
 

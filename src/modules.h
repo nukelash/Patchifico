@@ -364,9 +364,9 @@ public:
 
         _map = new parameter_map(60, 260, 880);
 
-        _saw_wave = LoadTexture("/Users/lukenash/Documents/Github/synth/saw_wave.png");
-        _tri_wave = LoadTexture("/Users/lukenash/Documents/Github/synth/tri_wave_12.png");
-        _sqr_wave = LoadTexture("/Users/lukenash/Documents/Github/synth/sqr_wave.png");
+        _saw_wave = LoadTexture("/Users/lukenash/Documents/Github/synth/resources/saw_wave.png");
+        _tri_wave = LoadTexture("/Users/lukenash/Documents/Github/synth/resources/tri_wave_12.png");
+        _sqr_wave = LoadTexture("/Users/lukenash/Documents/Github/synth/resources/sqr_wave.png");
     }
 
     void draw() {
@@ -408,7 +408,7 @@ public:
         DrawTextEx(PANEL_FONT, "Freq", freq_label_position*BASE_UNIT, PANEL_FONT_SIZE*BASE_UNIT, PANEL_FONT_SPACING*BASE_UNIT, BLACK);
     }
 
-    float process() {
+    void process() {
 
         for (auto i : _audio_oscillators) {
             i->SetFreq(_map->process(_audio_frequency + (0.2*_audio_frequency_mod.val())));
@@ -488,9 +488,9 @@ public:
 
         _group_box = new group(_module_box, "LFO");
 
-        _saw_wave = LoadTexture("/Users/lukenash/Documents/Github/synth/saw_wave.png");
-        _tri_wave = LoadTexture("/Users/lukenash/Documents/Github/synth/tri_wave_12.png");
-        _sqr_wave = LoadTexture("/Users/lukenash/Documents/Github/synth/sqr_wave.png");
+        _saw_wave = LoadTexture("/Users/lukenash/Documents/Github/synth/resources/saw_wave.png");
+        _tri_wave = LoadTexture("/Users/lukenash/Documents/Github/synth/resources/tri_wave_12.png");
+        _sqr_wave = LoadTexture("/Users/lukenash/Documents/Github/synth/resources/sqr_wave.png");
     }
 
     void draw() {
@@ -521,7 +521,7 @@ public:
         DrawTextEx(PANEL_FONT, "Reset", reset_label_position*BASE_UNIT, PANEL_FONT_SIZE*BASE_UNIT, PANEL_FONT_SPACING*BASE_UNIT, BLACK);
     }
 
-    float process() {
+    void process() {
         for (auto i : _lfo_oscillators) {
             i->SetFreq(_map->process(_lfo_frequency));
             i->SetPw((_pulse_width.val()+1.0f)/2.0f);
@@ -599,7 +599,7 @@ public:
 
     }
 
-    float process() {
+    void process() {
 
         _filter.SetFreq(_map->process(_frequency+(0.2*_cutoff_mod.val())));
         _filter.SetRes(_resonance);
@@ -1121,7 +1121,8 @@ public:
         return sample;
     }
 
-    float draw() {
+    void draw() {
+
         int y_pad = 30;
         float y_index = _module_box.y + y_pad;
 
