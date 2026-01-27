@@ -198,8 +198,8 @@ public:
         float vertical_buffer =(_help_button_module_box.height - text_size.y)/2.0f;
         _text_position = {_help_button_module_box.x+horizontal_buffer, _help_button_module_box.y+vertical_buffer};
 
-        _patch_image = LoadTexture("/Users/lukenash/Documents/Github/synth/instructions1.png");
-        _knob_image = LoadTexture("/Users/lukenash/Documents/Github/synth/instructions2.png");
+        _patch_image = LoadTexture("/Users/lukenash/Documents/Github/synth/resources/instructions1.png");
+        _knob_image = LoadTexture("/Users/lukenash/Documents/Github/synth/resources/instructions2.png");
 
         _ma->get_device_info(&_p_device_info, &_device_count);
 

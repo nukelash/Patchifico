@@ -36,7 +36,7 @@ Font CERVEZA_FONT;
 
 void InitVisualConfig(){
     PANEL_FONT = LoadFontEx("/Users/lukenash/Documents/Github/synth/resources/MADE TOMMY Medium_PERSONAL USE.otf", 128, nullptr, 0);
-    CERVEZA_FONT = LoadFontEx("/Users/lukenash/Documents/Github/synth/resourcescinzel/Cinzel-Bold.otf", 64, nullptr, 0);
+    CERVEZA_FONT = LoadFontEx("/Users/lukenash/Documents/Github/synth/resources/Cinzel-Bold.otf", 64, nullptr, 0);
 
     return;
 }
