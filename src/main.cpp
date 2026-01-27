@@ -10,6 +10,8 @@
 #include "modules.h"
 #include "gui_components.h"
 
+#include <emscripten/emscripten.h>
+
 // #define PLATFORM_WEB
 
 // #if defined(PLATFORM_WEB)
@@ -68,11 +70,26 @@ void callback(ma_device* pDevice, void* pOutput, const void* pInput, ma_uint32 f
 
 void update_draw_frame() {
 
-    // if(IsWindowResized()){
-    //         float ratio = 680.0f / 497.5f;
-    //         SetWindowSize(GetScreenWidth(), GetScreenWidth() / ratio);
-    //         BASE_UNIT = GetScreenWidth() / 680.0f;
-    //     }
+    if(IsWindowResized()){
+            float ratio = 680.0f / 497.5f;
+            std::cout << "Screen: " << GetScreenWidth() << " " << GetScreenWidth() / ratio << std::endl;
+            int k_scale = EM_ASM_INT(return window.devicePixelRatio);
+            std::cout << "Ratio: " << k_scale << std::endl;
+
+
+            SetWindowSize(k_scale * GetScreenWidth(), k_scale * GetScreenWidth() / ratio);
+            BASE_UNIT = GetScreenWidth() / 680.0f;
+
+            EM_ASM(
+                const scale = window.devicePixelRatio;
+                const canvas = document.getElementById('canvas');
+                canvas.style.width = Math.floor(canvas.width / scale) + "px";
+                canvas.style.height = Math.floor(canvas.height / scale) + "px";
+                canvas.style["image-rendering"] = "pixelated";
+            );
+
+
+        }
 
         BeginDrawing();
             ClearBackground(PACIFICO_BROWN);
