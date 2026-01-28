@@ -1,6 +1,3 @@
-
-//modules: oscillator, lfo, vca, env, filter, sequencer(?)
-
 #include "daisysp.h"
 #include "raygui.h"
 #include "raylib.h"
@@ -75,9 +72,7 @@ public:
 
     struct patch_cable {
 
-        patch_cable() {
-            //_color = patch_colors[rand() % 4];
-        }
+        patch_cable() {}
 
         patch_cable(Color color){
             _color = color;
@@ -1024,18 +1019,10 @@ public:
 
     void draw() {
         _group_box->draw();
-
-        for(int i = 0; i < _num_steps; i++) {
-            // Rectangle bounds = {_module_box.x+150+(i*52.5f), _module_box.y + 7.5f, 30, 30};
-            // GuiCheckBox(bounds, "", &_trig_pattern[i]);
-            // bounds.y += 30;
-            // bounds.width = 40;
-            
-        }
-
         _cv.gui.draw();
         _trig.gui.draw();
         _tempo_knob->draw();
+
         for (int i= 0; i < _num_steps; i++){
             _step_knobs[i]->draw();
             _step_switches[i]->draw();
@@ -1128,7 +1115,7 @@ public:
 
         int x_pad = 5;
         float x_index = _module_box.x + x_pad;
-        //GuiGroupBox(_module_box, "Mixer");
+
         _group_box->draw();
 
         _in_1.gui.draw();

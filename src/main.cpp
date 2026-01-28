@@ -71,53 +71,50 @@ void callback(ma_device* pDevice, void* pOutput, const void* pInput, ma_uint32 f
 void update_draw_frame() {
 
     if(IsWindowResized()){
-            float ratio = 680.0f / 497.5f;
-            std::cout << "Screen: " << GetScreenWidth() << " " << GetScreenWidth() / ratio << std::endl;
-            int k_scale = EM_ASM_INT(return window.devicePixelRatio);
-            std::cout << "Ratio: " << k_scale << std::endl;
+        float ratio = 680.0f / 497.5f;
+        int width = GetScreenWidth() < 680 ? 680 : GetScreenWidth();
+        int height = width / ratio;
+        int k_scale = EM_ASM_INT(return window.devicePixelRatio);
 
 
-            SetWindowSize(k_scale * GetScreenWidth(), k_scale * GetScreenWidth() / ratio);
-            BASE_UNIT = GetScreenWidth() / 680.0f;
+        SetWindowSize(width, height);
+        BASE_UNIT = width / 680.0f;
 
-            EM_ASM(
-                const scale = window.devicePixelRatio;
-                const canvas = document.getElementById('canvas');
-                canvas.style.width = Math.floor(canvas.width / scale) + "px";
-                canvas.style.height = Math.floor(canvas.height / scale) + "px";
-                canvas.style["image-rendering"] = "pixelated";
-            );
+        EM_ASM(
+            const scale = window.devicePixelRatio;
+            const canvas = document.getElementById('canvas');
+            canvas.style.width = Math.floor(canvas.width / scale) + "px";
+            canvas.style.height = Math.floor(canvas.height / scale) + "px";
+            canvas.style["image-rendering"] = "pixelated";
+        );
 
 
-        }
+    }
 
-        BeginDrawing();
-            ClearBackground(PACIFICO_BROWN);
-            //DrawRectangleRounded((Rectangle{10, 10, 700, 400})*BASE_UNIT, 0.05, 8,  PACIFICO_BROWN);
-            //DrawTextEx(title_font, "Patchifico", (Vector2{20, 20})*BASE_UNIT, 24*BASE_UNIT, 1, BLACK);
+    BeginDrawing();
+        ClearBackground(PACIFICO_BROWN);
 
-            my_osc.draw();
-            my_lfo.draw();
-            my_filt.draw();
-            my_mixer.draw();
-            my_envelope.draw();
-            my_vca.draw();
-            my_mult.draw();
-            my_sequencer.draw();
-            my_patch_bay.draw();
+        my_osc.draw();
+        my_lfo.draw();
+        my_filt.draw();
+        my_mixer.draw();
+        my_envelope.draw();
+        my_vca.draw();
+        my_mult.draw();
+        my_sequencer.draw();
+        my_patch_bay.draw();
 
-            DrawTextureEx(logo, (Vector2){5, 0}*BASE_UNIT, 0,  0.45*BASE_UNIT, WHITE);
-            created_by_card->draw();
-            DrawTextureEx(vine, (Vector2){457, 60}*BASE_UNIT, 0, 0.27*BASE_UNIT, WHITE);
-            DrawTextureEx(anchor, (Vector2){350, -12}*BASE_UNIT, 0, 0.34*BASE_UNIT, WHITE);
-            DrawTextEx(CERVEZA_FONT, "CREATED BY LUKE NASH", (Vector2){170, 7}*BASE_UNIT, CERVEZA_FONT_SIZE*BASE_UNIT, CERVEZA_FONT_SPACING*BASE_UNIT, PACIFICO_RED);
-            my_help_button.draw();
+        DrawTextureEx(logo, (Vector2){5, 0}*BASE_UNIT, 0,  0.45*BASE_UNIT, WHITE);
+        created_by_card->draw();
+        DrawTextureEx(vine, (Vector2){457, 60}*BASE_UNIT, 0, 0.27*BASE_UNIT, WHITE);
+        DrawTextureEx(anchor, (Vector2){350, -12}*BASE_UNIT, 0, 0.34*BASE_UNIT, WHITE);
+        DrawTextEx(CERVEZA_FONT, "CREATED BY LUKE NASH", (Vector2){170, 7}*BASE_UNIT, CERVEZA_FONT_SIZE*BASE_UNIT, CERVEZA_FONT_SPACING*BASE_UNIT, PACIFICO_RED);
+        my_help_button.draw();
 
-        EndDrawing();
+    EndDrawing();
 }
 
 void gui_loop() {
-    //title_font = LoadFont("/Users/lukenash/Downloads/pacifico-beer.otf/pacifico-beer.otf");
 
     bool showMessageBox = false;
     float value;
@@ -125,8 +122,6 @@ void gui_loop() {
     int x = 60;
     int y = 60;
 
-    //Image title = LoadImage("/Users/lukenash/Documents/Github/synth/logo.png");
-    //Image anchor= LoadImage("/Users/lukenash/Documents/Github/synth/anchor.png")
     logo = LoadTexture("/Users/lukenash/Documents/Github/synth/resources/logo.png");
     anchor = LoadTexture("/Users/lukenash/Documents/Github/synth/resources/anchor.png");
     vine = LoadTexture("/Users/lukenash/Documents/Github/synth/resources/vine.png");
@@ -146,10 +141,8 @@ void gui_loop() {
             audio_initialized = true;
         }
         
-
         update_draw_frame();
 
-        
     }
 #endif
 
@@ -162,6 +155,7 @@ int main() {
     SetConfigFlags(FLAG_WINDOW_TOPMOST);
     InitWindow(680, 497.5, "Patchifico");
     InitVisualConfig();
+    srand(20);
     int user_data;
 
     my_osc.init(48000, &my_patch_bay);

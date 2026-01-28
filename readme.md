@@ -5,18 +5,19 @@ Patchifico is a virtual modular synthesizer themed around Pacifico beer. The pat
 <img src="demo_screenshot.png"/>
 
 ## Dependencies
-This project makes use of raylib and miniaudio, two absolutely wonderful libraries.
+This project makes use of raylib for GUI, miniaudio for audio IO, and DaisySP for audio DSP,
 
 ## Building instructions
-So far, building this project has only been tested on MacOS using the following commands:
+On MacOS:
 ```
 cmake -DCMAKE_BUILD_TYPE=DEBUG -S . -B build
 cmake --build build
 ```
 
--DCMAKE_TOOLCHAIN_FILE=/Users/lukenash/Documents/Github/emsdk/upstream/emscripten/cmake/Modules/Platform/Emscripten.cmake
--DPLATFORM=Web
+For Web via Emscripten:
 
--DMA_ENABLE_AUDIO_WORKLETS  // -sAUDIO_WORKLET=1 -sWASM_WORKERS=1 -sASYNCIFY 
-
+```
 emcmake cmake -DCMAKE_BUILD_TYPE=DEBUG -DCMAKE_TOOLCHAIN_FILE=/Users/lukenash/Documents/Github/emsdk/upstream/emscripten/cmake/Modules/Platform/Emscripten.cmake -S . -B build
+
+cmake --build build
+```
