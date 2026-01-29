@@ -120,7 +120,6 @@ public:
     ~toggle_switch() {}
 
     void draw() {
-        //Color filled = PACIFICO_GOLD;
 
         if(IsMouseButtonPressed(MOUSE_BUTTON_LEFT) && CheckCollisionPointRec(GetMousePosition(), {_position.x*BASE_UNIT, _position.y*BASE_UNIT, _side_length*BASE_UNIT, _side_length*BASE_UNIT})) {
             _toggled = !_toggled;
@@ -198,8 +197,8 @@ public:
         float vertical_buffer =(_help_button_module_box.height - text_size.y)/2.0f;
         _text_position = {_help_button_module_box.x+horizontal_buffer, _help_button_module_box.y+vertical_buffer};
 
-        _patch_image = LoadTexture("/Users/lukenash/Documents/Github/synth/instructions1.png");
-        _knob_image = LoadTexture("/Users/lukenash/Documents/Github/synth/instructions2.png");
+        _patch_image = LoadTexture("/Users/lukenash/Documents/Github/synth/resources/instructions1.png");
+        _knob_image = LoadTexture("/Users/lukenash/Documents/Github/synth/resources/instructions2.png");
 
         _ma->get_device_info(&_p_device_info, &_device_count);
 
@@ -332,9 +331,6 @@ private:
     float calculate_roundness(Rectangle rec, float radius) {
         // roundness in raylib changes based on rectangle dimensions, this will solve for that based on rounded corner pixel radius
 
-        // Calculate corner radius
-        //float radius = (rec.width > rec.height)? (rec.height*roundness)/2 : (rec.width*roundness)/2;
-
         float roundness = (rec.width > rec.height)? (2.0f*radius)/rec.height : (2.0f*radius)/rec.width;
         return roundness;
     }
@@ -425,9 +421,6 @@ private:
 
     float calculate_roundness(Rectangle rec, float radius) {
         // roundness in raylib changes based on rectangle dimensions, this will solve for that based on rounded corner pixel radius
-
-        // Calculate corner radius
-        //float radius = (rec.width > rec.height)? (rec.height*roundness)/2 : (rec.width*roundness)/2;
 
         float roundness = (rec.width > rec.height)? (2.0f*radius)/rec.height : (2.0f*radius)/rec.width;
         return roundness;

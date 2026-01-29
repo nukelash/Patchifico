@@ -18669,13 +18669,15 @@ static void ma_device__on_notification_rerouted(ma_device* pDevice)
 }
 #endif
 
-#if defined(MA_EMSCRIPTEN)
-EMSCRIPTEN_KEEPALIVE
+//#if defined(MA_EMSCRIPTEN)
+//EMSCRIPTEN_KEEPALIVE
+extern "C" {
 void ma_device__on_notification_unlocked(ma_device* pDevice)
 {
     ma_device__on_notification(ma_device_notification_init(pDevice, ma_device_notification_type_unlocked));
 }
-#endif
+}
+//#endif
 
 
 static void ma_device__on_data_inner(ma_device* pDevice, void* pFramesOut, const void* pFramesIn, ma_uint32 frameCount)

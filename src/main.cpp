@@ -10,10 +10,9 @@
 #include "modules.h"
 #include "gui_components.h"
 
-
-// static daisysp::OnePole flt;
-// static daisysp::Oscillator osc, lfo;
-// float saw, freq, output;
+#if defined(PLATFORM_WEB)
+#include <emscripten/emscripten.h>
+#endif
 
 oscillator my_osc;
 lfo my_lfo;
@@ -29,22 +28,22 @@ help_button my_help_button;
 
 ma_interface* ma;
 
+Font title_font;
+Texture2D logo;
+Texture2D anchor;
+Texture2D vine;
+
+bool audio_initialized = false;
 
 void callback(ma_device* pDevice, void* pOutput, const void* pInput, ma_uint32 frameCount)
 {
-    float* input = (float*) pInput;
     float* out = (float*) pOutput;
-
-    //access userdata in the callback:
-    pDevice->pUserData;
-
-    float sample;
 
     for (int i = 0; i < frameCount; i++) {
 
         my_osc.process();
         my_lfo.process();
-        my_filt.process();
+        my_filt.process(); 
         my_envelope.process();
         my_vca.process();
         my_mult.process();
@@ -54,8 +53,60 @@ void callback(ma_device* pDevice, void* pOutput, const void* pInput, ma_uint32 f
     }
 }
 
+void update_draw_frame() {
+
+#if defined(PLATFORM_WEB)
+    if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT) && (!audio_initialized)) {
+        ma->start();
+        audio_initialized = true;
+    }
+#endif
+
+    if(IsWindowResized()){
+        float ratio = 680.0f / 497.5f;
+        int width = GetScreenWidth() < 680 ? 680 : GetScreenWidth();
+        int height = width / ratio;
+        // int k_scale = EM_ASM_INT(return window.devicePixelRatio);
+
+        SetWindowSize(width, height);
+        BASE_UNIT = width / 680.0f;
+
+#if defined(PLATFORM_WEB)
+        // This makes the UI render at the correct resolution on web
+        EM_ASM(
+            const scale = window.devicePixelRatio;
+            const canvas = document.getElementById('canvas');
+            canvas.style.width = Math.floor(canvas.width / scale) + "px";
+            canvas.style.height = Math.floor(canvas.height / scale) + "px";
+            canvas.style["image-rendering"] = "pixelated";
+        );
+#endif
+    }
+
+    BeginDrawing();
+        ClearBackground(PACIFICO_BROWN);
+
+        my_osc.draw();
+        my_lfo.draw();
+        my_filt.draw();
+        my_mixer.draw();
+        my_envelope.draw();
+        my_vca.draw();
+        my_mult.draw();
+        my_sequencer.draw();
+        my_patch_bay.draw();
+
+        DrawTextureEx(logo, (Vector2){5, 0}*BASE_UNIT, 0,  0.45*BASE_UNIT, WHITE);
+        created_by_card->draw();
+        DrawTextureEx(vine, (Vector2){457, 60}*BASE_UNIT, 0, 0.27*BASE_UNIT, WHITE);
+        DrawTextureEx(anchor, (Vector2){350, -12}*BASE_UNIT, 0, 0.34*BASE_UNIT, WHITE);
+        DrawTextEx(CERVEZA_FONT, "CREATED BY LUKE NASH", (Vector2){170, 7}*BASE_UNIT, CERVEZA_FONT_SIZE*BASE_UNIT, CERVEZA_FONT_SPACING*BASE_UNIT, PACIFICO_RED);
+        my_help_button.draw();
+
+    EndDrawing();
+}
+
 void gui_loop() {
-    Font title_font = LoadFont("/Users/lukenash/Downloads/pacifico-beer.otf/pacifico-beer.otf");
 
     bool showMessageBox = false;
     float value;
@@ -63,48 +114,22 @@ void gui_loop() {
     int x = 60;
     int y = 60;
 
-    //Image title = LoadImage("/Users/lukenash/Documents/Github/synth/logo.png");
-    //Image anchor= LoadImage("/Users/lukenash/Documents/Github/synth/anchor.png")
-    Texture2D logo = LoadTexture("/Users/lukenash/Documents/Github/synth/logo.png");
-    Texture2D anchor = LoadTexture("/Users/lukenash/Documents/Github/synth/anchor.png");
-    Texture2D vine = LoadTexture("/Users/lukenash/Documents/Github/synth/vine.png");
+    logo = LoadTexture("/Users/lukenash/Documents/Github/synth/resources/logo.png");
+    anchor = LoadTexture("/Users/lukenash/Documents/Github/synth/resources/anchor.png");
+    vine = LoadTexture("/Users/lukenash/Documents/Github/synth/resources/vine.png");
     
+#if defined(PLATFORM_WEB)
+    emscripten_set_main_loop(update_draw_frame, 0, 1);
+#else
+    SetTargetFPS(60);
 
-    while (!WindowShouldClose())
-    {
-        // Draw
-        //----------------------------------------------------------------------------------
+    ma->start();
+    audio_initialized = true;
 
-        if(IsWindowResized()){
-            float ratio = 680.0f / 497.5f;
-            SetWindowSize(GetScreenWidth(), GetScreenWidth() / ratio);
-            BASE_UNIT = GetScreenWidth() / 680.0f;
-        }
-
-        BeginDrawing();
-            ClearBackground(PACIFICO_BROWN);
-            //DrawRectangleRounded((Rectangle{10, 10, 700, 400})*BASE_UNIT, 0.05, 8,  PACIFICO_BROWN);
-            //DrawTextEx(title_font, "Patchifico", (Vector2{20, 20})*BASE_UNIT, 24*BASE_UNIT, 1, BLACK);
-
-            my_osc.draw();
-            my_lfo.draw();
-            my_filt.draw();
-            my_mixer.draw();
-            my_envelope.draw();
-            my_vca.draw();
-            my_mult.draw();
-            my_sequencer.draw();
-            my_patch_bay.draw();
-
-            DrawTextureEx(logo, (Vector2){5, 0}*BASE_UNIT, 0,  0.45*BASE_UNIT, WHITE);
-            created_by_card->draw();
-            DrawTextureEx(vine, (Vector2){457, 60}*BASE_UNIT, 0, 0.27*BASE_UNIT, WHITE);
-            DrawTextureEx(anchor, (Vector2){350, -12}*BASE_UNIT, 0, 0.34*BASE_UNIT, WHITE);
-            DrawTextEx(CERVEZA_FONT, "CREATED BY LUKE NASH", (Vector2){170, 7}*BASE_UNIT, CERVEZA_FONT_SIZE*BASE_UNIT, CERVEZA_FONT_SPACING*BASE_UNIT, PACIFICO_RED);
-            my_help_button.draw();
-
-        EndDrawing();
+    while (!WindowShouldClose()) {   
+        update_draw_frame();
     }
+#endif
 
     CloseWindow();
 }
@@ -114,8 +139,8 @@ int main() {
     SetConfigFlags(FLAG_WINDOW_RESIZABLE);
     SetConfigFlags(FLAG_WINDOW_TOPMOST);
     InitWindow(680, 497.5, "Patchifico");
-    SetTargetFPS(60);
     InitVisualConfig();
+    srand(20);
     int user_data;
 
     my_osc.init(48000, &my_patch_bay);
@@ -166,7 +191,6 @@ int main() {
     my_patch_bay.add("my_mixer_in_2", &my_mixer._in_2);
 
     ma = new ma_interface(&user_data, callback);
-    ma->start();
 
     my_help_button.init(ma); //need to init help button AFTER initializing ma
 

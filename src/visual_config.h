@@ -1,18 +1,3 @@
-/*
-colors...
-
-PANEL_TITLE_FONT
-PANEL_TITLE_FONT_SIZE
-PANEL_TITLE_FONT_SPACING
-
-LABEL_FONT_SIZE
-LABEL_FONT_SPACING
-
-PATCH_POINT_RADIUS
-
-LINE_THICKNESS
-
-*/
 #pragma once
 
 #include "raylib.h"
@@ -35,8 +20,8 @@ Font CERVEZA_FONT;
 #define CERVEZA_FONT_SPACING 3.5
 
 void InitVisualConfig(){
-    PANEL_FONT = LoadFontEx("/Users/lukenash/Downloads/made_tommy/MADE TOMMY Medium_PERSONAL USE.otf", 128, nullptr, 0); // does nullptr vs NULL cause issues?
-    CERVEZA_FONT = LoadFontEx("/Users/lukenash/Downloads/cinzel/Cinzel-Bold.otf", 64, nullptr, 0);
+    PANEL_FONT = LoadFontEx("/Users/lukenash/Documents/Github/synth/resources/MADE TOMMY Medium_PERSONAL USE.otf", 128, nullptr, 0);
+    CERVEZA_FONT = LoadFontEx("/Users/lukenash/Documents/Github/synth/resources/Cinzel-Bold.otf", 64, nullptr, 0);
 
     return;
 }
