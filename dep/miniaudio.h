@@ -41644,11 +41644,6 @@ MA_API ma_device_config ma_device_config_init(ma_device_type deviceType)
 
 MA_API ma_result ma_device_init(ma_context* pContext, const ma_device_config* pConfig, ma_device* pDevice)
 {
-#if defined(MA_APPLE)
-    printf("!! APPLE !!\n");
-#elif defined(MA_EMSCRIPTEN)
-    printf("!! EMSCRIPTEN !!\n");
-#endif
     ma_result result;
     ma_device_descriptor descriptorPlayback;
     ma_device_descriptor descriptorCapture;

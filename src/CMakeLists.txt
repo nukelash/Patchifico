@@ -1,7 +1,3 @@
-# if (EMSCRIPTEN)
-#   set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -s USE_GLFW=3 -s ASSERTIONS=1 -s WASM=1 -s ASYNCIFY -s GL_ENABLE_GET_PROC_ADDRESS=1 -pthread")
-#   set(CMAKE_EXECUTABLE_SUFFIX ".html") # This line is used to set your executable to build with the emscripten html template so that you can directly open it.
-# endif ()
 
 if (EMSCRIPTEN)
     set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -s USE_GLFW=3 -s ASSERTIONS=1 -s WASM=1 -s ASYNCIFY -s GL_ENABLE_GET_PROC_ADDRESS=1 -s TOTAL_STACK=32MB")
@@ -11,14 +7,6 @@ endif ()
 if (EMSCRIPTEN)
   set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -s USE_GLFW=3 -s ASSERTIONS=1 -s WASM=1 -s ASYNCIFY -s GL_ENABLE_GET_PROC_ADDRESS=1 -s TOTAL_STACK=32MB --preload-file /Users/lukenash/Documents/Github/synth/resources --shell-file /Users/lukenash/Documents/Github/raylib/src/minshell.html -sEXPORTED_FUNCTIONS=[_ma_device__on_notification_unlocked]")
   set(CMAKE_EXECUTABLE_SUFFIX ".html") # This line is used to set your executable to build with the emscripten html template so that you can directly open it.
-endif ()
-
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g --preload-file /Users/lukenash/Documents/Github/synth/resources --shell-file /Users/lukenash/Documents/Github/raylib/src/minshell.html -sEXPORTED_FUNCTIONS=[_main,_ma_device__on_notification_unlocked] -s TOTAL_STACK=32MB")
-
-# Miniaudio
-if (EMSCRIPTEN)
-
-
 endif ()
 
 set(ALL_SRC 
@@ -92,10 +80,8 @@ set(DaisySP_INCLUDE_DIRS
                
 
 add_executable(Patchifico ${ALL_SRC} ${DaisySP_SRC})
-message("hi")
 
 if(APPLE)
-    message("testtt")
     set(FRAMEWORKS "-framework CoreVideo"
                    "-framework IOKit" 
                    "-framework Cocoa"
@@ -104,28 +90,14 @@ if(APPLE)
     target_link_libraries(Patchifico PUBLIC ${FRAMEWORKS})
 endif()
 
-# if (EMSCRIPTEN)
-#     set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -s USE_GLFW=3 -s ASSERTIONS=1 -s WASM=1 -s ASYNCIFY -s GL_ENABLE_GET_PROC_ADDRESS=1 -sAUDIO_WORKLET=1 -sWASM_WORKERS=1 -pthread")
-#     set(CMAKE_EXECUTABLE_SUFFIX ".html") # This line is used to set your executable to build with the emscripten html template so that you can directly open it.
-#     set(RAYLIB_INCLUDE ${CMAKE_SOURCE_DIR}/dep/raylib/wasm/include)
-#     set(RAYLIB_LIB ${CMAKE_SOURCE_DIR}/dep/raylib/wasm/lib/libraylib.a)
-
-    
-# else ()
-#     set(RAYLIB_INCLUDE ${CMAKE_SOURCE_DIR}/dep/raylib/include)
-#     set(RAYLIB_LIB ${CMAKE_SOURCE_DIR}/dep/raylib/lib/libraylib.a)
-# endif ()
-
-# Emscripten
-set(RAYLIB_INCLUDE ${CMAKE_SOURCE_DIR}/dep/raylib/wasm/include)
-set(RAYLIB_LIB ${CMAKE_SOURCE_DIR}/dep/raylib/wasm/lib/libraylib.a)
-
-# Normal
-# set(RAYLIB_INCLUDE ${CMAKE_SOURCE_DIR}/dep/raylib/include)
-# set(RAYLIB_LIB ${CMAKE_SOURCE_DIR}/dep/raylib/lib/libraylib.a)
-
+if (EMSCRIPTEN)
+    set(RAYLIB_INCLUDE ${CMAKE_SOURCE_DIR}/dep/raylib/wasm/include)
+    set(RAYLIB_LIB ${CMAKE_SOURCE_DIR}/dep/raylib/wasm/lib/libraylib.a)
+    target_link_options(Patchifico PUBLIC "--preload-file /Users/lukenash/Documents/Github/synth/resources --shell-file /Users/lukenash/Documents/Github/raylib/src/minshell.html" -sEXPORTED_RUNTIME_METHODS=[HEAPF32])
+else ()
+    set(RAYLIB_INCLUDE ${CMAKE_SOURCE_DIR}/dep/raylib/include)
+    set(RAYLIB_LIB ${CMAKE_SOURCE_DIR}/dep/raylib/lib/libraylib.a)
+endif()
 
 include_directories(Patchifico ${INCLUDE_DIRS} ${DaisySP_INCLUDE_DIRS} ${RAYLIB_INCLUDE})
 target_link_libraries(Patchifico PUBLIC ${RAYLIB_LIB})
-
-target_link_options(Patchifico PUBLIC "--preload-file /Users/lukenash/Documents/Github/synth/resources --shell-file /Users/lukenash/Documents/Github/raylib/src/minshell.html" -sEXPORTED_RUNTIME_METHODS=[HEAPF32])
