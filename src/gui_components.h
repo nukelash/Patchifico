@@ -86,6 +86,14 @@ public:
 
     }
 
+    // set knob value from 0-1
+    void set_knob(float value) {
+        *_parameter = (value * (_max_parameter_value - _min_parameter_value)) + _min_parameter_value;
+
+        _knob_angle = (value * (_max_angle - _min_angle)) + _min_angle;
+        _last_knob_angle = _knob_angle;
+    }
+
     Vector2 _position;
     int _radius;
 
@@ -133,11 +141,12 @@ public:
         }
         
     }
+
+    bool _toggled = 0;
 private:
     Vector2 _position;
     float _side_length = 25;
 
-    bool _toggled = 0;
     bool* _parameter;
 };
 
