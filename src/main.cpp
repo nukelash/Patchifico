@@ -53,6 +53,18 @@ void callback(ma_device* pDevice, void* pOutput, const void* pInput, ma_uint32 f
     }
 }
 
+void initial_preset() {
+    my_patch_bay.connect("my_osc_sqr", "vca_in_a_1", PACIFICO_RED);
+    my_patch_bay.connect("sequencer_trig_out", "env_trigger", PACIFICO_BLUE);
+    my_patch_bay.connect("env_out", "vca_in_a_2", PACIFICO_GREEN);
+    my_patch_bay.connect("vca_out_a", "my_mixer_in_1", PACIFICO_RED);
+
+    my_sequencer.set_trig(0, 1);
+    my_sequencer.set_trig(5, 1);
+
+    my_envelope.set_attack(0.001);
+}
+
 void update_draw_frame() {
 
 #if defined(PLATFORM_WEB)
@@ -193,6 +205,8 @@ int main() {
     ma = new ma_interface(&user_data, callback);
 
     my_help_button.init(ma); //need to init help button AFTER initializing ma
+
+    initial_preset();
 
     gui_loop();
 }

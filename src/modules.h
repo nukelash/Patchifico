@@ -731,6 +731,11 @@ public:
         DrawTextEx(PANEL_FONT, "Decay", decay_label_position*BASE_UNIT, PANEL_FONT_SIZE*BASE_UNIT, PANEL_FONT_SPACING*BASE_UNIT, BLACK);
     }
 
+    void set_attack(float value) {
+        _attack = value;
+        _attack_knob->set_knob(value);
+    }
+
     patch_destination _trigger;
     patch_source _output;
 
@@ -993,7 +998,7 @@ public:
         // This, along with setting _trig.value false below, forces trig.value to be false
         // for a single sample between steps, so that the envelope is properly triggered.
         if (_trig_reset) {
-            _trig.value = _trig_pattern[_step];
+            _trig.value = false;
             _trig_reset = false;
         }
 
@@ -1006,7 +1011,7 @@ public:
             }
 
             _trig_reset = true;
-            _trig.value = false;
+            _trig.value = _trig_pattern[_step];
             _cv.value = _cv_pattern[_step];
 
             _trig_light->set_brightness(_trig.value);
@@ -1047,6 +1052,7 @@ public:
 
     void set_trig(int step, bool value) {
         _trig_pattern[step] = value;
+        _step_switches[step]->_toggled = value;
     }
 
     void set_cv(int step, float value) {
