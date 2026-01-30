@@ -283,7 +283,8 @@ private:
 
     bool check_valid_connection(std::string name1, std::string name2, std::string* source_name, std::string* destination_name) {
         //check if name1 and name2 represent 1 source and 1 destination
-        int source_hits, destination_hits = 0;
+        int source_hits = 0;
+        int destination_hits = 0;
         for(auto src : _sources) {
             std::string src_name = src.first;
             if(src_name == name1) {
