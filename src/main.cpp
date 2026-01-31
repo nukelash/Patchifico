@@ -86,11 +86,11 @@ void update_draw_frame() {
 #if defined(PLATFORM_WEB)
         // This makes the UI render at the correct resolution on web
         EM_ASM(
-            const scale = window.devicePixelRatio;
+            const scale = 2;
             const canvas = document.getElementById('canvas');
             canvas.style.width = Math.floor(canvas.width / scale) + "px";
             canvas.style.height = Math.floor(canvas.height / scale) + "px";
-            canvas.style["image-rendering"] = "pixelated";
+            canvas.style["image-rendering"] = "auto";
         );
 #endif
     }
