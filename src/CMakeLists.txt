@@ -6,7 +6,7 @@ endif ()
 
 if (EMSCRIPTEN)
   set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DPLATFORM_WEB -s USE_GLFW=3 -s ASSERTIONS=1 -s WASM=1 -s ASYNCIFY -s GL_ENABLE_GET_PROC_ADDRESS=1 -s TOTAL_STACK=32MB --preload-file /Users/lukenash/Documents/Github/synth/resources --shell-file /Users/lukenash/Documents/Github/raylib/src/minshell.html -sEXPORTED_FUNCTIONS=[_ma_device__on_notification_unlocked]")
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DPLATFORM_WEB -g --preload-file /Users/lukenash/Documents/Github/synth/resources --shell-file /Users/lukenash/Documents/Github/raylib/src/minshell.html -sEXPORTED_FUNCTIONS=[_main,_ma_device__on_notification_unlocked] -s TOTAL_STACK=32MB")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DPLATFORM_WEB --preload-file /Users/lukenash/Documents/Github/synth/resources --shell-file /Users/lukenash/Documents/Github/raylib/src/minshell.html -sEXPORTED_FUNCTIONS=[_main,_ma_device__on_notification_unlocked] -s TOTAL_STACK=32MB")
   set(CMAKE_EXECUTABLE_SUFFIX ".html") # This line is used to set your executable to build with the emscripten html template so that you can directly open it.
 endif ()
 

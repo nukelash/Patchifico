@@ -1,4 +1,5 @@
 #include "ma_interface.h"
+#include <iostream>
 
 ma_interface::ma_interface(void* user_data, void (*callback) (ma_device *, void *, const void *, unsigned int)){
 
@@ -6,20 +7,7 @@ ma_interface::ma_interface(void* user_data, void (*callback) (ma_device *, void 
         throw std::runtime_error("Failed to initialize MiniAudio context.");
     }
 
-    ma_waveform_config config = ma_waveform_config_init(
-                                ma_format_f32,
-                                1,
-                                44100,
-                                ma_waveform_type_sine,
-                                0.2,
-                                440);
-
-    ma_result result = ma_waveform_init(&config, &(_waveform));
-    if (result != MA_SUCCESS) {
-        throw std::runtime_error("Failed to initialize MiniAudio waveform.");
-    }
-
-    _device_config = ma_device_config_init(ma_device_type_duplex);
+    _device_config = ma_device_config_init(ma_device_type_playback);
     _device_config.dataCallback      = callback;
     _device_config.playback.format   = ma_format_f32;
     _device_config.playback.channels = 1;
@@ -64,9 +52,9 @@ void ma_interface::get_device_info(ma_device_info*** pinfo, ma_uint32* count) {
 
     ma_result result = ma_context_get_devices(&_context, *pinfo, count, &pCaptureInfos, &captureCount);
     if (result != MA_SUCCESS) {
-            printf("error getting devices: %d", result);
-            return;
-        }
+        printf("error getting devices: %d", result);
+        return;
+    }
 }
 
  std::string ma_interface::current_device_name() {
